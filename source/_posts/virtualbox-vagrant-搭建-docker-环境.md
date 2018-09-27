@@ -5,18 +5,21 @@ tags:
 cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/44e818397558c3770b38c6978f35cbb6.png
 ---
 
-# 1. 安装 Virtualbox
+# 安装 Virtualbox
 
 下载地址：https://www.virtualbox.org/wiki/Downloads
 
+---
 
-# 2. 安装 Vagrant
+# 安装 Vagrant
 
 下载地址： https://www.vagrantup.com/downloads.html
 
-> vagrant 常用命令
+---
 
-命令行 | 说明 |
+ vagrant 常用命令
+
+| 命令行 | 说明 |
 | -- | -- |
 | vagrant init | 初始化 vagrant |
 | vagrant up | 启动 vagrant |
@@ -27,9 +30,9 @@ cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/44e818397558
 | vagrant destroy | 删除 vagrant |
 
 
-# 3. 配置 Vagrantfile
+# 配置 Vagrantfile
 
-```
+```vb
 Vagrant.require_version ">= 1.6.0"
 
 boxes = [
@@ -64,7 +67,8 @@ end
 ```
 
 setup.sh 脚本
-```
+
+```bash
 #/bin/sh
 
 # install some tools
@@ -82,7 +86,7 @@ sudo systemctl start docker
 rm -rf get-docker.sh
 ```
 
-通过上述步骤，就可以成功搭建一台预装 docker 的 centos7 虚拟机了。
+通过上述步骤，就可以成功搭建一台预装了 docker 的 centos7 虚拟机了。
 
 
 # 参考
