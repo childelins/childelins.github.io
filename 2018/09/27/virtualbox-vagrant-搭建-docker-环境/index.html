@@ -11,8 +11,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     
-    <meta name="description" content="1. 安装 Virtualbox下载地址：https://www.virtualbox.org/wiki/Downloads
-2. 安装 Vagrant下载地址： https://www.vagra,"> 
+    <meta name="description" content="
+春江花月夜
+
+春江潮水连海平，海上明月共潮生。滟滟随波千万里，何处春江无月明！江流宛转绕芳甸，月照花林皆似霰。空里流霜不觉飞，汀上白沙看不见。江天一色无纤尘，皎皎空中孤月轮。江畔何人初见月？江月何,"> 
     <meta name="author" content="chidelins"> 
     <link rel="alternative" href="atom.xml" title="chidelins&#39;s blog" type="application/atom+xml"> 
     
@@ -51,15 +53,53 @@
 
         </div>
         <div class="content markdown">
-            <h1 id="1-安装-Virtualbox"><a href="#1-安装-Virtualbox" class="headerlink" title="1. 安装 Virtualbox"></a>1. 安装 Virtualbox</h1><p>下载地址：<a href="https://www.virtualbox.org/wiki/Downloads" target="_blank" rel="noopener">https://www.virtualbox.org/wiki/Downloads</a></p>
-<h1 id="2-安装-Vagrant"><a href="#2-安装-Vagrant" class="headerlink" title="2. 安装 Vagrant"></a>2. 安装 Vagrant</h1><p>下载地址： <a href="https://www.vagrantup.com/downloads.html" target="_blank" rel="noopener">https://www.vagrantup.com/downloads.html</a></p>
-<blockquote>
-<p>vagrant 常用命令</p>
-</blockquote>
-<p>命令行 | 说明 |<br>| – | – |<br>| vagrant init | 初始化 vagrant |<br>| vagrant up | 启动 vagrant |<br>| vagrant reload |  重启 vagrant |<br>| vagrant halt | 关闭 vagrant |<br>| vagrant ssh | 通过 SSH 登录 vagrant |<br>| vagrant provision | 重新应用更改 vagrant 配置 |<br>| vagrant destroy | 删除 vagrant |</p>
-<h1 id="3-配置-Vagrantfile"><a href="#3-配置-Vagrantfile" class="headerlink" title="3. 配置 Vagrantfile"></a>3. 配置 Vagrantfile</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">Vagrant.require_version &quot;&gt;= 1.6.0&quot;</span><br><span class="line"></span><br><span class="line">boxes = [</span><br><span class="line">    &#123;</span><br><span class="line">        :name =&gt; &quot;docker-host&quot;,</span><br><span class="line">        :eth1 =&gt; &quot;192.168.10.15&quot;,</span><br><span class="line">        :mem =&gt; &quot;1024&quot;,</span><br><span class="line">        :cpu =&gt; &quot;1&quot;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">Vagrant.configure(2) do |config|</span><br><span class="line"></span><br><span class="line">  config.vm.box = &quot;centos/7&quot;</span><br><span class="line">  boxes.each do |opts|</span><br><span class="line">    config.vm.define opts[:name] do |config|</span><br><span class="line">      config.vm.hostname = opts[:name]</span><br><span class="line">      config.vm.provider &quot;vmware_fusion&quot; do |v|</span><br><span class="line">        v.vmx[&quot;memsize&quot;] = opts[:mem]</span><br><span class="line">        v.vmx[&quot;numvcpus&quot;] = opts[:cpu]</span><br><span class="line">      end</span><br><span class="line">      config.vm.provider &quot;virtualbox&quot; do |v|</span><br><span class="line">        v.customize [&quot;modifyvm&quot;, :id, &quot;--memory&quot;, opts[:mem]]</span><br><span class="line">        v.customize [&quot;modifyvm&quot;, :id, &quot;--cpus&quot;, opts[:cpu]]</span><br><span class="line">      end</span><br><span class="line">      config.vm.network :private_network, ip: opts[:eth1]</span><br><span class="line">    end</span><br><span class="line">  end</span><br><span class="line">  config.vm.synced_folder &quot;F:\Learn&quot;, &quot;/home/vagrant/learn&quot;</span><br><span class="line">  config.vm.provision &quot;shell&quot;, privileged: true, path: &quot;./setup.sh&quot;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
-<p>setup.sh 脚本<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#/bin/sh</span><br><span class="line"></span><br><span class="line"># install some tools</span><br><span class="line">sudo yum install -y git vim gcc glibc-static telnet</span><br><span class="line"></span><br><span class="line"># install docker</span><br><span class="line">curl -fsSL get.docker.com -o get-docker.sh</span><br><span class="line">sh get-docker.sh</span><br><span class="line"></span><br><span class="line"># start docker service</span><br><span class="line">sudo groupadd docker</span><br><span class="line">sudo gpasswd -a vagrant docker</span><br><span class="line">sudo systemctl start docker</span><br><span class="line"></span><br><span class="line">rm -rf get-docker.sh</span><br></pre></td></tr></table></figure></p>
-<p>通过上述步骤，就可以成功搭建一台预装 docker 的 centos7 虚拟机了。</p>
+            <h1 id="安装-Virtualbox"><a href="#安装-Virtualbox" class="headerlink" title="安装 Virtualbox"></a>安装 Virtualbox</h1><p>下载地址：<a href="https://www.virtualbox.org/wiki/Downloads" target="_blank" rel="noopener">https://www.virtualbox.org/wiki/Downloads</a></p>
+<hr>
+<h1 id="安装-Vagrant"><a href="#安装-Vagrant" class="headerlink" title="安装 Vagrant"></a>安装 Vagrant</h1><p>下载地址： <a href="https://www.vagrantup.com/downloads.html" target="_blank" rel="noopener">https://www.vagrantup.com/downloads.html</a></p>
+<hr>
+<p> vagrant 常用命令</p>
+<table>
+<thead>
+<tr>
+<th>命令行</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>vagrant init</td>
+<td>初始化 vagrant</td>
+</tr>
+<tr>
+<td>vagrant up</td>
+<td>启动 vagrant</td>
+</tr>
+<tr>
+<td>vagrant reload</td>
+<td>重启 vagrant</td>
+</tr>
+<tr>
+<td>vagrant halt</td>
+<td>关闭 vagrant</td>
+</tr>
+<tr>
+<td>vagrant ssh</td>
+<td>通过 SSH 登录 vagrant</td>
+</tr>
+<tr>
+<td>vagrant provision</td>
+<td>重新应用更改 vagrant 配置</td>
+</tr>
+<tr>
+<td>vagrant destroy</td>
+<td>删除 vagrant</td>
+</tr>
+</tbody>
+</table>
+<h1 id="配置-Vagrantfile"><a href="#配置-Vagrantfile" class="headerlink" title="配置 Vagrantfile"></a>配置 Vagrantfile</h1><figure class="highlight vb"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">Vagrant.require_version <span class="string">"&gt;= 1.6.0"</span></span><br><span class="line"></span><br><span class="line">boxes = [</span><br><span class="line">    &#123;</span><br><span class="line">        :name =&gt; <span class="string">"docker-host"</span>,</span><br><span class="line">        :eth1 =&gt; <span class="string">"192.168.10.15"</span>,</span><br><span class="line">        :mem =&gt; <span class="string">"1024"</span>,</span><br><span class="line">        :cpu =&gt; <span class="string">"1"</span></span><br><span class="line">    &#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">Vagrant.configure(<span class="number">2</span>) <span class="keyword">do</span> |config|</span><br><span class="line"></span><br><span class="line">  config.vm.box = <span class="string">"centos/7"</span></span><br><span class="line">  boxes.<span class="keyword">each</span> <span class="keyword">do</span> |opts|</span><br><span class="line">    config.vm.define opts[:name] <span class="keyword">do</span> |config|</span><br><span class="line">      config.vm.hostname = opts[:name]</span><br><span class="line">      config.vm.provider <span class="string">"vmware_fusion"</span> <span class="keyword">do</span> |v|</span><br><span class="line">        v.vmx[<span class="string">"memsize"</span>] = opts[:mem]</span><br><span class="line">        v.vmx[<span class="string">"numvcpus"</span>] = opts[:cpu]</span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line">      config.vm.provider <span class="string">"virtualbox"</span> <span class="keyword">do</span> |v|</span><br><span class="line">        v.customize [<span class="string">"modifyvm"</span>, :id, <span class="string">"--memory"</span>, opts[:mem]]</span><br><span class="line">        v.customize [<span class="string">"modifyvm"</span>, :id, <span class="string">"--cpus"</span>, opts[:cpu]]</span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line">      config.vm.network :private_network, ip: opts[:eth1]</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  config.vm.synced_folder <span class="string">"F:\Learn"</span>, <span class="string">"/home/vagrant/learn"</span></span><br><span class="line">  config.vm.provision <span class="string">"shell"</span>, privileged: <span class="literal">true</span>, path: <span class="string">"./setup.sh"</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>setup.sh 脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># install some tools</span></span><br><span class="line">sudo yum install -y git vim gcc glibc-static telnet</span><br><span class="line"></span><br><span class="line"><span class="comment"># install docker</span></span><br><span class="line">curl -fsSL get.docker.com -o get-docker.sh</span><br><span class="line">sh get-docker.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># start docker service</span></span><br><span class="line">sudo groupadd docker</span><br><span class="line">sudo gpasswd -a vagrant docker</span><br><span class="line">sudo systemctl start docker</span><br><span class="line"></span><br><span class="line">rm -rf get-docker.sh</span><br></pre></td></tr></table></figure>
+<p>通过上述步骤，就可以成功搭建一台预装了 docker 的 centos7 虚拟机了。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
 <li><a href="https://www.vagrantup.com/docs/" target="_blank" rel="noopener">vagrant 官方文档</a></li>
 <li><a href="https://blog.csdn.net/u011781521/article/details/80291765" target="_blank" rel="noopener">Vagrant的配置文件Vagrantfile详解</a></li>
@@ -94,7 +134,7 @@
     </div>
     
         <div class='side'>
-            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-安装-Virtualbox"><span class="toc-number">1.</span> <span class="toc-text">1. 安装 Virtualbox</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-安装-Vagrant"><span class="toc-number">2.</span> <span class="toc-text">2. 安装 Vagrant</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-配置-Vagrantfile"><span class="toc-number">3.</span> <span class="toc-text">3. 配置 Vagrantfile</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#安装-Virtualbox"><span class="toc-number">1.</span> <span class="toc-text">安装 Virtualbox</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#安装-Vagrant"><span class="toc-number">2.</span> <span class="toc-text">安装 Vagrant</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#配置-Vagrantfile"><span class="toc-number">3.</span> <span class="toc-text">配置 Vagrantfile</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol>
         </div>
     
 </div>
