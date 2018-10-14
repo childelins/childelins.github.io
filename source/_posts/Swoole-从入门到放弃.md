@@ -2,7 +2,7 @@
 title: Swoole 从入门到放弃
 date: 2018-10-13 11:54:19
 tags:
-cover:https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/44e818397558c3770b38c6978f35cbe8.jpg
+cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/44e818397558c3770b38c6978f35cbe8.jpg
 ---
 
 # 简介
@@ -311,7 +311,7 @@ ws_client.html
     <h1>swoole websocket 测试</h1>
 
     <script>
-        // 实例化  WebSocket 对象
+        // 实例化 WebSocket 对象
         var ws = new WebSocket('ws://192.168.10.15:9502');
         
         // 连接建立时触发
@@ -326,12 +326,12 @@ ws_client.html
             console.log("received message: " + evt.data);
         };
 
-        // 	连接关闭时触发
+        // 连接关闭时触发
         ws.onclose = function (evt) {
             console.log("connection closed.");
         };
 
-        // 	通信发生错误时触发
+        // 通信发生错误时触发
         ws.onerror = function (evt) {
             console.log("error");
         };
@@ -350,6 +350,110 @@ ws_client.html
 客户端 2 退出啦~客户端 3 连接成功
 接收到客户端 3 的消息： hello swoole
 ```
+
+## 异步Task
+
+Swoole提供了异步任务处理的功能，可以投递一个异步任务到 `task_worker` 进程池中执行，不影响 `worker` 进程请求的处理速度。要使用 `Task` 功能，必须先设置 `task_worker_num`，并且必须设置 Server 的 `onTask` 和 `onFinish` 事件回调函数。
+
+**使用场景**
+
+* 执行耗时的操作（发送邮件、广播等）
+
+---
+
+基于上面的 WebSocket 服务器只需要增加 `onTask` 和 `onFinish` 2个事件回调函数即可。另外需要设置 task 进程数量，可以根据任务的耗时和任务量配置适量的 task 进程。
+
+ws.php
+
+```php
+<?php
+
+class Ws
+{
+    public $ws = null;
+
+    public function __construct($host, $port)
+    {
+        $this->ws = new swoole_websocket_server($host, $port);
+
+        $this->ws->set([
+            'work_num' => 4, // 设置启动的worker进程数
+            'task_worker_num' => 4, // 设置Task进程的数量
+        ]);
+
+        $this->ws->on('open', [$this, 'onOpen']);
+        $this->ws->on('message', [$this, 'onMessage']);
+        $this->ws->on('task', [$this, 'onTask']);
+        $this->ws->on('finish', [$this, 'onFinish']);
+        $this->ws->on('close', [$this, 'onClose']);
+    }
+
+    public function start()
+    {
+        $this->ws->start();
+    }
+
+    public function onOpen($server, $request)
+    {
+        echo "客户端 {$request->fd} 连接成功\n";
+    }
+
+    public function onMessage($server, $frame)
+    {
+        echo "接收到客户端 {$frame->fd} 的消息： {$frame->data}\n";
+
+        // todo 10s
+        $data = [
+            'fd' => $frame->fd,
+            'value' => 'hello',
+        ];
+        // 投递异步任务
+        $server->task($data);
+
+        $server->push($frame->fd, '服务端发送的消息：' . date('Y-m-d H:i:s'));
+    }
+
+    // 处理异步任务
+    public function onTask($serv, $task_id, $from_id, $data)
+    {
+        echo "New AsyncTask[id=$task_id]" . PHP_EOL;
+
+        // 模拟耗时场景
+        sleep(10);
+
+        //返回任务执行的结果
+        $serv->finish(json_encode($data) . ' -> OK');
+    }
+
+    // 处理异步任务返回的结果
+    public function onFinish($serv, $task_id, $data)
+    {
+        echo "AsyncTask[$task_id] Finish: $data" . PHP_EOL;
+    }
+
+    public function onClose($server, $fd)
+    {
+        echo "客户端 {$fd} 退出啦~";
+    }
+}
+
+$ws = new Ws('0.0.0.0', 9502);
+$ws->start();
+```
+
+运行结果：
+```
+[vagrant@docker-host server]$ php ws.php 
+客户端 1 连接成功
+接收到客户端 1 的消息： hello swoole
+New AsyncTask[id=0]
+AsyncTask[0] Finish: {"fd":1,"value":"hello"} -> OK
+客户端 1 退出啦~客户端 2 连接成功
+接收到客户端 2 的消息： hello swoole
+New AsyncTask[id=1]
+AsyncTask[1] Finish: {"fd":2,"value":"hello"} -> OK
+```
+
 
 # 参考
 
