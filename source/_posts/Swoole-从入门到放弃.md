@@ -454,6 +454,117 @@ New AsyncTask[id=1]
 AsyncTask[1] Finish: {"fd":2,"value":"hello"} -> OK
 ```
 
+## 毫秒定时器
+
+swoole提供了类似JavaScript的 `setInterval/setTimeout` 异步高精度定时器，粒度为毫秒级。
+
+```php
+// 每隔2s触发一次
+swoole_timer_tick(2000, function ($timer_id) {
+    echo "tick-2000ms\n";
+});
+
+// 3s后执行此函数
+swoole_timer_after(3000, function () {
+    echo "after 3000ms.\n";
+});
+```
+
+## 异步文件IO
+
+## 异步MySQL
+
+## 异步Redis
+
+## 进程
+
+进程就是正在运行的程序的一个实例。Swoole增加了一个进程管理模块，用来替代PHP的pcntl扩展。需要注意的是Process进程在系统是非常昂贵的资源，创建进程消耗很大。另外创建的进程过多会导致进程切换开销大幅上升。
+
+process.php
+
+```php
+<?php
+
+// 创建子进程
+$process = new swoole_process(function (swoole_process $worker) {
+    // 执行一个外部程序
+    $worker->exec('/usr/local/php/bin/php', [
+        __DIR__ . '/../server/http_server.php'
+    ]);
+}, true);
+
+// 开启进程
+$pid = $process->start();
+echo $pid . PHP_EOL;
+
+// 子进程结束后进行回收
+swoole_process::wait();
+```
+
+一个多进程使用场景：
+```php
+<?php
+
+echo 'process-start-time:' . date('H:i:s') . PHP_EOL;
+
+$processes = [];
+$urls = [
+    'http://www.baidu.com',
+    'http://www.sina.com.cn',
+    'http://www.qq.com',
+    'http://www.baidu.com?search=imooc',
+    'http://www.baidu.com?search=fun',
+    'http://www.baidu.com?search=sina',
+];
+
+$count = count($urls);
+for ($i = 0; $i < $count; $i++) {
+    // 多进程请求
+    $process = new swoole_process(function (swoole_process $worker) use ($urls, $i) {
+        $content = curlData($urls[$i]);
+        // 向管道内写入数据
+        $worker->write($content); // echo $content;
+    }, true);
+
+    $pid = $process->start();
+    $processes[$pid] = $process;
+}
+
+foreach ($processes as $process) {
+    // 从管道中读取数据
+    echo $process->read();
+}
+
+/**
+ * 模拟请求URL的内容
+ *
+ * @param [type] $url
+ * @return void
+ */
+function curlData($url)
+{
+    // curl or file_get_contents
+    sleep(1);
+
+    return $url . ' - success' . PHP_EOL;
+}
+
+echo 'process-end-time:' . date('H:i:s') . PHP_EOL;
+```
+
+运行结果:
+```
+[vagrant@docker-host process]$ php curl.php 
+process-start-time:09:17:51
+http://www.baidu.com - success
+http://www.sina.com.cn - success
+http://www.qq.com - success
+http://www.baidu.com?search=imooc - success
+http://www.baidu.com?search=fun - success
+http://www.baidu.com?search=sina - success
+process-end-time:09:17:52
+```
+
 
 # 参考
 
