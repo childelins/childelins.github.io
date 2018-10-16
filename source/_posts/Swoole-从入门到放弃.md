@@ -565,6 +565,71 @@ http://www.baidu.com?search=sina - success
 process-end-time:09:17:52
 ```
 
+## 内存
+
+* table
+
+swoole_table是一个基于共享内存和锁实现的超高性能，并发数据结构。用于解决多进程/多线程数据共享和同步加锁问题。
+
+```php
+<?php
+
+// 创建内存表
+$table = new swoole_table(1024);
+
+// 内存表增加一列
+$table->column('id', $table::TYPE_INT, 4);
+$table->column('name', $table::TYPE_STRING, 64);
+$table->column('age', $table::TYPE_INT, 4);
+$table->create();
+
+// 设置一行数据
+$table->set('boy', ['id' => 1, 'name' => 'kangkang', 'age' => 18]);
+
+// 获取一行数据
+print_r($table->get('boy'));
+
+// 另外一种方式
+$table['girl'] = ['id' => 2, 'name' => 'june', 'age' => 16];
+print_r($table['girl']);
+
+// 自增
+$table->incr('girl', 'age', 2);
+print_r($table['girl']);
+
+// 自减
+$table->decr('girl', 'age', 3);
+print_r($table['girl']);
+
+// 删除
+$table->del('girl');
+print_r($table['girl']);
+```
+
+## 协程
+
+协程可以理解为纯用户态的线程，其通过协作而不是抢占来进行切换。相对于进程或者线程，协程所有的操作都可以在用户态完成，创建和切换的消耗更低。Swoole可以为每一个请求创建对应的协程，根据IO的状态来合理的调度协程，这会带来了以下优势：
+
+* 开发者可以无感知的用同步的代码编写方式达到异步IO的效果和性能，避免了传统异步回调所带来的离散的代码逻辑和陷入多层回调中导致代码无法维护。
+
+> 基于swoole_server或者swoole_http_server进行开发，目前只支持在onRequet, onReceive, onConnect等事件回调函数中使用协程
+
+```php
+<?php
+
+$http = new swoole_http_server('0.0.0.0', 8001);
+
+$http->on('request', function ($request, $response) {
+    $redis = new Swoole\Coroutine\Redis();
+    $redis->connet('127.0.0.1', 6379);
+    $value = $redis->get($request->get['a']);
+
+    $response->header('Content-Type', 'text/plain');
+    $response->end($value);
+});
+
+$http->start();
+```
 
 # 参考
 
