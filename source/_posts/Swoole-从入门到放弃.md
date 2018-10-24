@@ -38,6 +38,71 @@ extension=swoole.so
 
 通过 `php -m` 来查看是否成功加载了 swoole。
 
+# Swoole进程模型
+
+Swoole 是一个多进程模式的框架，当启动一个 Swoole 应用时，一共会创建 `2 + n + m` 个进程。其中 n 为 Worker 进程数，m 为 TaskWorker 进程数，2 为一个 Master 进程和一个 Manager 进程。它们之间的关系如下图所示：
+
+![](http://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/structure.png)
+
+
+## Master 进程
+
+Master进程为主进程，该进程会创建 Manager进程、Reactor线程等。
+
+主进程内的回调函数：
+
+* onStart
+* onShutdown
+* onMasterConnect
+* onMasterClose
+* onTimer
+
+## Reactor线程
+
+Swoole的主进程是一个多线程的程序。其中有一组很重要的线程，称之为Reactor线程。它就是真正处理TCP连接，收发数据的线程。
+
+Swoole的主线程在Accept新的连接后，会将这个连接分配给一个固定的Reactor线程，并由这个线程负责监听此socket。在socket可读时读取数据，并进行协议解析，将请求投递到Worker进程。在socket可写时将数据发送给TCP客户端。
+
+## Manager 进程
+
+Manager进程为管理进程，该进程的作用是创建、管理所有的Worker进程和TaskWorker进程。
+
+* 子进程结束运行时，manager进程负责回收此子进程，避免成为僵尸进程。并创建新的子进程
+* 服务器关闭时，manager进程将发送信号给所有子进程，通知子进程关闭服务
+* 服务器重启时，manager进程会逐个关闭/重启子进程
+
+管理进程内的回调函数：
+
+* onManagerStart
+* onManagerStop
+
+## Worker 进程
+
+Worker进程作为Swoole的工作进程，所有的业务逻辑代码均在此进程上运行。当Reactor线程接收到来自客户端的数据后，会将数据打包通过管道发送给某个Worker进程。
+
+当一个Worker进程被成功创建后，会调用onWorkerStart回调，随后进入事件循环等待数据。当通过回调函数接收到数据后，开始处理数据。如果处理数据过程中出现严重错误导致进程退出，或者Worker进程处理的总请求数达到指定上限，则Worker进程调用onWorkerStop回调并结束进程。主进程会重新拉起新的Worker进程。
+
+Worker进程内的回调函数：
+
+* onWorkerStart
+* onWorkerStop
+* onConnect
+* onClose
+* onReceive
+* onTimer
+* onFinish
+
+## TaskWorker 进程
+
+Task Worker是Swoole中一种特殊的工作进程，该进程的作用是处理一些耗时较长的任务，以达到释放Worker进程的目的。Worker进程可以通过swoole_server对象的task方法投递一个任务到Task Worker进程.
+
+Worker进程通过Unix Sock管道将数据发送给Task Worker，这样Worker进程就可以继续处理新的逻辑，无需等待耗时任务的执行。需要注意的是，由于Task Worker是独立进程，因此无法直接在两个进程之间共享全局变量，需要使用Redis、MySQL或者swoole_table来实现进程间共享数据。
+
+task_worker进程内的回调函数：
+
+* onTask
+* onorkerStart
+
 
 # 快速起步
 
