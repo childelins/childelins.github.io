@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+<html lang="" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>childelins&#39;s blog</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    
+    <meta name="description" content="简介Swoole 使用纯 C 语言编写，是面向生产环境的 PHP 异步网络通信引擎。使 PHP 开发人员可以编写高性能的异步并发 TCP、UDP、Unix Socket、HTTP，WebSocket,"> 
+    <meta name="author" content="chidelins"> 
+    <link rel="alternative" href="atom.xml" title="childelins&#39;s blog" type="application/atom+xml"> 
+    
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/css/diaspora.css">
+</head>
+
+<body class="loading">
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">Docker 环境下的前后端分离部署与运维</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">Docker 环境下的前后端分离部署与运维</h1>
+        <div class="stuff">
+            <span>十月 18, 2018</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h1 id="安装-PXC-集群"><a href="#安装-PXC-集群" class="headerlink" title="安装 PXC 集群"></a>安装 PXC 集群</h1><ol>
+<li>安装 PXC 镜像</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull percona/percona-xtradb-cluster:5.7.21</span><br></pre></td></tr></table></figure>
+<p>目前推荐安装 <code>5.7.21</code> 版本的 PXC 镜像，兼容性最好，在容器内可以执行apt-get安装各种程序包。最新版的PXC镜像内，无法执行apt-get，也就没法安装热备份工具了。</p>
+<ol start="2">
+<li>重命名 PXC 镜像</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker tag percona/percona-xtradb-cluster:5.7.21 pxc</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>创建 net1 网段</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create --subnet=172.18.0.0/16 net1</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>创建5个数据卷</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker volume create v1</span><br><span class="line">docker volume create v2</span><br><span class="line">docker volume create v3</span><br><span class="line">docker volume create v4</span><br><span class="line">docker volume create v5</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>创建备份数据卷（用于热备份数据）</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker volume create backup</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>创建5节点的 PXC 集群</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建第1个MySQL节点</span></span><br><span class="line">docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=abc123456 -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=abc123456 -v v1:/var/lib/mysql -v backup:/data --privileged --name=node1 --net=net1 --ip 172.18.0.2 pxc</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建第2个MySQL节点</span></span><br><span class="line">docker run -d -p 3307:3306 -e MYSQL_ROOT_PASSWORD=abc123456 -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=abc123456 -e CLUSTER_JOIN=node1 -v v2:/var/lib/mysql -v backup:/data --privileged --name=node2 --net=net1 --ip 172.18.0.3 pxc</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建第3个MySQL节点</span></span><br><span class="line">docker run -d -p 3308:3306 -e MYSQL_ROOT_PASSWORD=abc123456 -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=abc123456 -e CLUSTER_JOIN=node1 -v v3:/var/lib/mysql --privileged --name=node3 --net=net1 --ip 172.18.0.4 pxc</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建第4个MySQL节点</span></span><br><span class="line">docker run -d -p 3309:3306 -e MYSQL_ROOT_PASSWORD=abc123456 -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=abc123456 -e CLUSTER_JOIN=node1 -v v4:/var/lib/mysql --privileged --name=node4 --net=net1 --ip 172.18.0.5 pxc</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建第5个MySQL节点</span></span><br><span class="line">docker run -d -p 3310:3306 -e MYSQL_ROOT_PASSWORD=abc123456 -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=abc123456 -e CLUSTER_JOIN=node1 -v v5:/var/lib/mysql -v backup:/data --privileged --name=node5 --net=net1 --ip 172.18.0.6 pxc</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意，每个MySQL容器创建之后，因为要执行PXC的初始化和加入集群等工作，耐心等待1分钟左右再用客户端连接MySQL。另外，必须第1个MySQL节点启动成功，用MySQL客户端能连接上之后，再去创建其他MySQL节点。</p>
+</blockquote>
+<h1 id="负载均衡，双机热备"><a href="#负载均衡，双机热备" class="headerlink" title="负载均衡，双机热备"></a>负载均衡，双机热备</h1><ol>
+<li>安装 Haproxy 镜像</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull haproxy</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>宿主机上编写 Haproxy 配置文件</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /home/soft/haproxy/haproxy.cfg</span><br></pre></td></tr></table></figure>
+<p>配置文件如下：<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">global</span><br><span class="line">    <span class="comment">#工作目录</span></span><br><span class="line">    chroot /usr/<span class="built_in">local</span>/etc/haproxy</span><br><span class="line">    <span class="comment">#日志文件，使用rsyslog服务中local5日志设备（/var/log/local5），等级info</span></span><br><span class="line">    <span class="built_in">log</span> 127.0.0.1 local5 info</span><br><span class="line">    <span class="comment">#守护进程运行</span></span><br><span class="line">    daemon</span><br><span class="line"></span><br><span class="line">defaults</span><br><span class="line">    <span class="built_in">log</span>  global</span><br><span class="line">    mode  http</span><br><span class="line">    <span class="comment">#日志格式</span></span><br><span class="line">    option  httplog</span><br><span class="line">    <span class="comment">#日志中不记录负载均衡的心跳检测记录</span></span><br><span class="line">    option  dontlognull</span><br><span class="line">    <span class="comment">#连接超时（毫秒）</span></span><br><span class="line">    timeout connect 5000</span><br><span class="line">    <span class="comment">#客户端超时（毫秒）</span></span><br><span class="line">    timeout client  50000</span><br><span class="line">    <span class="comment">#服务器超时（毫秒）</span></span><br><span class="line">    timeout server  50000</span><br><span class="line"></span><br><span class="line"><span class="comment">#监控界面</span></span><br><span class="line">listen  admin_stats</span><br><span class="line">    <span class="comment">#监控界面的访问的IP和端口</span></span><br><span class="line">    <span class="built_in">bind</span>  0.0.0.0:8888</span><br><span class="line">    <span class="comment">#访问协议</span></span><br><span class="line">    mode  http</span><br><span class="line">    <span class="comment">#URI相对地址</span></span><br><span class="line">    stats uri /dbs</span><br><span class="line">    <span class="comment">#统计报告格式</span></span><br><span class="line">    stats realm Global\ statistics</span><br><span class="line">    <span class="comment">#登陆帐户信息</span></span><br><span class="line">    stats auth admin:abc123456</span><br><span class="line"></span><br><span class="line"><span class="comment">#数据库负载均衡</span></span><br><span class="line">listen  proxy-mysql</span><br><span class="line">    <span class="comment">#访问的IP和端口</span></span><br><span class="line">    <span class="built_in">bind</span>  0.0.0.0:3306</span><br><span class="line">    <span class="comment">#网络协议</span></span><br><span class="line">    mode  tcp</span><br><span class="line">    <span class="comment">#负载均衡算法（轮询算法）</span></span><br><span class="line">    <span class="comment">#轮询算法：roundrobin</span></span><br><span class="line">    <span class="comment">#权重算法：static-rr</span></span><br><span class="line">    <span class="comment">#最少连接算法：leastconn</span></span><br><span class="line">    <span class="comment">#请求源IP算法：source </span></span><br><span class="line">    balance  roundrobin</span><br><span class="line">    <span class="comment">#日志格式</span></span><br><span class="line">    option  tcplog</span><br><span class="line">    <span class="comment">#在MySQL中创建一个没有权限的haproxy用户，密码为空。Haproxy使用这个账户对MySQL数据库心跳检测</span></span><br><span class="line">    option  mysql-check user haproxy</span><br><span class="line">    server  MySQL_1 172.18.0.2:3306 check weight 1 maxconn 2000</span><br><span class="line">    server  MySQL_2 172.18.0.3:3306 check weight 1 maxconn 2000</span><br><span class="line">    server  MySQL_3 172.18.0.4:3306 check weight 1 maxconn 2000</span><br><span class="line">    server  MySQL_4 172.18.0.5:3306 check weight 1 maxconn 2000</span><br><span class="line">    server  MySQL_5 172.18.0.6:3306 check weight 1 maxconn 2000</span><br><span class="line">    <span class="comment">#使用keepalive检测死链</span></span><br><span class="line">    option  tcpka</span><br></pre></td></tr></table></figure></p>
+<ol start="3">
+<li>创建两个 Haproxy 容器</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#创建第1个Haproxy负载均衡服务器</span></span><br><span class="line">docker run -it -d -p 4001:8888 -p 4002:3306 -v /home/soft/haproxy:/usr/<span class="built_in">local</span>/etc/haproxy --name h1 --privileged --net=net1 --ip 172.18.0.7 haproxy</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入h1容器，启动Haproxy</span></span><br><span class="line">docker <span class="built_in">exec</span> -it h1 bash</span><br><span class="line">haproxy -f /usr/<span class="built_in">local</span>/etc/haproxy/haproxy.cfg</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建第2个Haproxy负载均衡服务器</span></span><br><span class="line">docker run -it -d -p 4003:8888 -p 4004:3306 -v /home/soft/haproxy:/usr/<span class="built_in">local</span>/etc/haproxy --name h2 --privileged --net=net1 --ip 172.18.0.8 haproxy</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入h2容器，启动Haproxy</span></span><br><span class="line">docker <span class="built_in">exec</span> -it h2 bash</span><br><span class="line">haproxy -f /usr/<span class="built_in">local</span>/etc/haproxy/haproxy.cfg</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>创建心跳检测账户</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CREATE USER &apos;haproxy&apos;@&apos;%&apos; IDENTIFIED BY &apos;&apos;;</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>Haproxy容器内安装Keepalived，设置虚拟IP</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#进入h1容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it h1 bash</span><br><span class="line"></span><br><span class="line"><span class="comment">#更新软件包</span></span><br><span class="line">apt-get update</span><br><span class="line"></span><br><span class="line"><span class="comment">#安装VIM</span></span><br><span class="line">apt-get install vim</span><br><span class="line"></span><br><span class="line"><span class="comment">#安装Keepalived</span></span><br><span class="line">apt-get install keepalived</span><br><span class="line"></span><br><span class="line"><span class="comment">#编辑Keepalived配置文件（参考下方配置文件）</span></span><br><span class="line">vim /etc/keepalived/keepalived.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动Keepalived</span></span><br><span class="line">service keepalived start</span><br><span class="line"></span><br><span class="line"><span class="comment">#宿主机执行ping命令</span></span><br><span class="line">ping 172.18.0.201</span><br></pre></td></tr></table></figure>
+<p>配置文件内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">vrrp_instance  VI_1 &#123;</span><br><span class="line">    state  MASTER</span><br><span class="line">    interface  eth0</span><br><span class="line">    virtual_router_id  51</span><br><span class="line">    priority  100</span><br><span class="line">    advert_int  1</span><br><span class="line">    authentication &#123;</span><br><span class="line">        auth_type  PASS</span><br><span class="line">        auth_pass  123456</span><br><span class="line">    &#125;</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">        172.18.0.201</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#进入h2容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it h2 bash</span><br><span class="line"></span><br><span class="line"><span class="comment">#更新软件包</span></span><br><span class="line">apt-get update</span><br><span class="line"></span><br><span class="line"><span class="comment">#安装VIM</span></span><br><span class="line">apt-get install vim</span><br><span class="line"></span><br><span class="line"><span class="comment">#安装Keepalived</span></span><br><span class="line">apt-get install keepalived</span><br><span class="line"></span><br><span class="line"><span class="comment">#编辑Keepalived配置文件</span></span><br><span class="line">vim /etc/keepalived/keepalived.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动Keepalived</span></span><br><span class="line">service keepalived start</span><br><span class="line"></span><br><span class="line"><span class="comment">#宿主机执行ping命令</span></span><br><span class="line">ping 172.18.0.201</span><br></pre></td></tr></table></figure>
+<p>配置文件内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">vrrp_instance  VI_1 &#123;</span><br><span class="line">    state  MASTER</span><br><span class="line">    interface  eth0</span><br><span class="line">    virtual_router_id  51</span><br><span class="line">    priority  100</span><br><span class="line">    advert_int  1</span><br><span class="line">    authentication &#123;</span><br><span class="line">        auth_type  PASS</span><br><span class="line">        auth_pass  123456</span><br><span class="line">    &#125;</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">        172.18.0.201</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ol start="6">
+<li>宿主机安装Keepalived，实现双机热备</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#宿主机执行安装Keepalived</span></span><br><span class="line">yum -y install keepalived</span><br><span class="line"></span><br><span class="line"><span class="comment">#修改Keepalived配置文件</span></span><br><span class="line">vi /etc/keepalived/keepalived.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#启动Keepalived</span></span><br><span class="line">service keepalived start</span><br></pre></td></tr></table></figure>
+<p>keepalived配置文件如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">    state MASTER</span><br><span class="line">    interface eth1</span><br><span class="line">    virtual_router_id 51</span><br><span class="line">    priority 100</span><br><span class="line">    advert_int 1</span><br><span class="line">    authentication &#123;</span><br><span class="line">        auth_type PASS</span><br><span class="line">        auth_pass 1111</span><br><span class="line">    &#125;</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">        192.168.10.150</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">virtual_server 192.168.10.150 8888 &#123;</span><br><span class="line">    delay_loop 3</span><br><span class="line">    lb_algo rr </span><br><span class="line">    lb_kind NAT</span><br><span class="line">    persistence_timeout 50</span><br><span class="line">    protocol TCP</span><br><span class="line"></span><br><span class="line">    real_server 172.18.0.201 8888 &#123;</span><br><span class="line">        weight 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">virtual_server 192.168.10.150 3306 &#123;</span><br><span class="line">    delay_loop 3</span><br><span class="line">    lb_algo rr </span><br><span class="line">    lb_kind NAT</span><br><span class="line">    persistence_timeout 50</span><br><span class="line">    protocol TCP</span><br><span class="line"></span><br><span class="line">    real_server 172.18.0.201 3306 &#123;</span><br><span class="line">        weight 1</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="热备份数据"><a href="#热备份数据" class="headerlink" title="热备份数据"></a>热备份数据</h1><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#进入node1容器</span></span><br><span class="line">docker <span class="built_in">exec</span> -it node1 bash</span><br><span class="line"></span><br><span class="line"><span class="comment">#更新软件包</span></span><br><span class="line">apt-get update</span><br><span class="line"></span><br><span class="line"><span class="comment">#安装热备工具</span></span><br><span class="line">apt-get install percona-xtrabackup-24</span><br><span class="line"></span><br><span class="line"><span class="comment">#全量热备</span></span><br><span class="line">innobackupex --user=root --password=abc123456 /data/backup/full</span><br></pre></td></tr></table></figure>
+<h1 id="冷还原数据"><a href="#冷还原数据" class="headerlink" title="冷还原数据"></a>冷还原数据</h1><p>停止其余4个节点，并删除节点<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker stop node2</span><br><span class="line">docker stop node3</span><br><span class="line">docker stop node4</span><br><span class="line">docker stop node5</span><br><span class="line">docker rm node2</span><br><span class="line">docker rm node3</span><br><span class="line">docker rm node4</span><br><span class="line">docker rm node5</span><br></pre></td></tr></table></figure></p>
+<p>node1容器中删除MySQL的数据<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#删除数据</span></span><br><span class="line">rm -rf /var/lib/mysql/*</span><br><span class="line"></span><br><span class="line"><span class="comment">#清空事务</span></span><br><span class="line">innobackupex --user=root --password=abc123456 --apply-back /data/backup/full/2018-04-15_05-09-07/</span><br><span class="line"></span><br><span class="line"><span class="comment">#还原数据</span></span><br><span class="line">innobackupex --user=root --password=abc123456 --copy-back  /data/backup/full/2018-04-15_05-09-07/</span><br></pre></td></tr></table></figure></p>
+<p>然后重新创建其余4个节点，组件PXC集群</p>
+<h1 id="配置-RedisCluster-集群"><a href="#配置-RedisCluster-集群" class="headerlink" title="配置 RedisCluster 集群"></a>配置 RedisCluster 集群</h1><ol>
+<li>安装 redis 镜像</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull yyyyttttwwww/redis</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>创建 net2 网段</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create --subnet=172.19.0.0/16 net2</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>创建6节点 redis 容器</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker run -it -d --name r1 -p 5001:6379 --net=net2 --ip 172.19.0.2 redis bash</span><br><span class="line">docker run -it -d --name r2 -p 5002:6379 --net=net2 --ip 172.19.0.3 redis bash</span><br><span class="line">docker run -it -d --name r3 -p 5003:6379 --net=net2 --ip 172.19.0.4 redis bash</span><br><span class="line">docker run -it -d --name r4 -p 5004:6379 --net=net2 --ip 172.19.0.5 redis bash</span><br><span class="line">docker run -it -d --name r5 -p 5005:6379 --net=net2 --ip 172.19.0.6 redis bash</span><br><span class="line">docker run -it -d --name r5 -p 5006:6379 --net=net2 --ip 172.19.0.7 redis bash</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：redis配置文件里必须要设置bind 0.0.0.0，这是允许其他IP可以访问当前redis。如果不设置这个参数，就不能组建Redis集群。</p>
+</blockquote>
+<ol start="4">
+<li>启动6节点 redis 服务器</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#进入r1节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it r1 bash</span><br><span class="line">cp /home/redis/redis.conf /usr/redis/redis.conf</span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">./redis-server ../redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入r2节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it r2 bash</span><br><span class="line">cp /home/redis/redis.conf /usr/redis/redis.conf</span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">./redis-server ../redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入r3节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it r3 bash</span><br><span class="line">cp /home/redis/redis.conf /usr/redis/redis.conf</span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">./redis-server ../redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入r4节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it r4 bash</span><br><span class="line">cp /home/redis/redis.conf /usr/redis/redis.conf</span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">./redis-server ../redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入r5节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it r5 bash</span><br><span class="line">cp /home/redis/redis.conf /usr/redis/redis.conf</span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">./redis-server ../redis.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#进入r6节点</span></span><br><span class="line">docker <span class="built_in">exec</span> -it r6 bash</span><br><span class="line">cp /home/redis/redis.conf /usr/redis/redis.conf</span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">./redis-server ../redis.conf</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>创建 Cluster 集群</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#在r1节点上执行下面的指令</span></span><br><span class="line"><span class="built_in">cd</span> /usr/redis/src</span><br><span class="line">mkdir -p ../cluster</span><br><span class="line">cp redis-trib.rb ../cluster/</span><br><span class="line"><span class="built_in">cd</span> ../cluster</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建Cluster集群</span></span><br><span class="line">./redis-trib.rb create --replicas 1 172.19.0.2:6379 172.19.0.3:6379 172.19.0.4:6379 172.19.0.5:6379 172.19.0.6:6379 172.19.0.7:6379</span><br><span class="line"></span><br><span class="line"><span class="comment"># redis-cli 客户端查看</span></span><br><span class="line">./redis-cli -c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看集群节点</span></span><br><span class="line">127.0.0.1:6379&gt; cluster nodes</span><br></pre></td></tr></table></figure>
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                    
+                        <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#安装-PXC-集群"><span class="toc-number">1.</span> <span class="toc-text">安装 PXC 集群</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#负载均衡，双机热备"><span class="toc-number">2.</span> <span class="toc-text">负载均衡，双机热备</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#热备份数据"><span class="toc-number">3.</span> <span class="toc-text">热备份数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#冷还原数据"><span class="toc-number">4.</span> <span class="toc-text">冷还原数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#配置-RedisCluster-集群"><span class="toc-number">5.</span> <span class="toc-text">配置 RedisCluster 集群</span></a></li></ol>
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/diaspora.js"></script>
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-125814240-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+
+
+</html>
