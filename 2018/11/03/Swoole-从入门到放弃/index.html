@@ -45,7 +45,7 @@
     <div class='main'>
         <h1 class="title">Swoole 从入门到放弃</h1>
         <div class="stuff">
-            <span>十月 13, 2018</span>
+            <span>十一月 03, 2018</span>
             
 
         </div>
@@ -70,49 +70,6 @@
 </ol>
 <p>编译安装成功后，修改 <code>php.ini</code> 加入<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">extension=swoole.so</span><br></pre></td></tr></table></figure></p>
 <p>通过 <code>php -m</code> 来查看是否成功加载了 swoole。</p>
-<h1 id="Swoole进程模型"><a href="#Swoole进程模型" class="headerlink" title="Swoole进程模型"></a>Swoole进程模型</h1><p>Swoole 是一个多进程模式的框架，当启动一个 Swoole 应用时，一共会创建 <code>2 + n + m</code> 个进程。其中 n 为 Worker 进程数，m 为 TaskWorker 进程数，2 为一个 Master 进程和一个 Manager 进程。它们之间的关系如下图所示：</p>
-<p><img src="http://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/structure.png" alt=""></p>
-<h2 id="Master-进程"><a href="#Master-进程" class="headerlink" title="Master 进程"></a>Master 进程</h2><p>Master进程为主进程，该进程会创建 Manager进程、Reactor线程等。</p>
-<p>主进程内的回调函数：</p>
-<ul>
-<li>onStart</li>
-<li>onShutdown</li>
-<li>onMasterConnect</li>
-<li>onMasterClose</li>
-<li>onTimer</li>
-</ul>
-<h2 id="Reactor线程"><a href="#Reactor线程" class="headerlink" title="Reactor线程"></a>Reactor线程</h2><p>Swoole的主进程是一个多线程的程序。其中有一组很重要的线程，称之为Reactor线程。它就是真正处理TCP连接，收发数据的线程。</p>
-<p>Swoole的主线程在Accept新的连接后，会将这个连接分配给一个固定的Reactor线程，并由这个线程负责监听此socket。在socket可读时读取数据，并进行协议解析，将请求投递到Worker进程。在socket可写时将数据发送给TCP客户端。</p>
-<h2 id="Manager-进程"><a href="#Manager-进程" class="headerlink" title="Manager 进程"></a>Manager 进程</h2><p>Manager进程为管理进程，该进程的作用是创建、管理所有的Worker进程和TaskWorker进程。</p>
-<ul>
-<li>子进程结束运行时，manager进程负责回收此子进程，避免成为僵尸进程。并创建新的子进程</li>
-<li>服务器关闭时，manager进程将发送信号给所有子进程，通知子进程关闭服务</li>
-<li>服务器重启时，manager进程会逐个关闭/重启子进程</li>
-</ul>
-<p>管理进程内的回调函数：</p>
-<ul>
-<li>onManagerStart</li>
-<li>onManagerStop</li>
-</ul>
-<h2 id="Worker-进程"><a href="#Worker-进程" class="headerlink" title="Worker 进程"></a>Worker 进程</h2><p>Worker进程作为Swoole的工作进程，所有的业务逻辑代码均在此进程上运行。当Reactor线程接收到来自客户端的数据后，会将数据打包通过管道发送给某个Worker进程。</p>
-<p>当一个Worker进程被成功创建后，会调用onWorkerStart回调，随后进入事件循环等待数据。当通过回调函数接收到数据后，开始处理数据。如果处理数据过程中出现严重错误导致进程退出，或者Worker进程处理的总请求数达到指定上限，则Worker进程调用onWorkerStop回调并结束进程。主进程会重新拉起新的Worker进程。</p>
-<p>Worker进程内的回调函数：</p>
-<ul>
-<li>onWorkerStart</li>
-<li>onWorkerStop</li>
-<li>onConnect</li>
-<li>onClose</li>
-<li>onReceive</li>
-<li>onTimer</li>
-<li>onFinish</li>
-</ul>
-<h2 id="TaskWorker-进程"><a href="#TaskWorker-进程" class="headerlink" title="TaskWorker 进程"></a>TaskWorker 进程</h2><p>Task Worker是Swoole中一种特殊的工作进程，该进程的作用是处理一些耗时较长的任务，以达到释放Worker进程的目的。Worker进程可以通过swoole_server对象的task方法投递一个任务到Task Worker进程.</p>
-<p>Worker进程通过Unix Sock管道将数据发送给Task Worker，这样Worker进程就可以继续处理新的逻辑，无需等待耗时任务的执行。需要注意的是，由于Task Worker是独立进程，因此无法直接在两个进程之间共享全局变量，需要使用Redis、MySQL或者swoole_table来实现进程间共享数据。</p>
-<p>task_worker进程内的回调函数：</p>
-<ul>
-<li>onTask</li>
-<li>onorkerStart</li>
-</ul>
 <h1 id="快速起步"><a href="#快速起步" class="headerlink" title="快速起步"></a>快速起步</h1><h2 id="TCP-服务"><a href="#TCP-服务" class="headerlink" title="TCP 服务"></a>TCP 服务</h2><p><code>swoole_server</code> 是异步服务器，所以是通过监听事件的方式来编写程序的。当对应的事件发生时底层会主动回调指定的PHP函数。如当有新的TCP连接进入时会执行 <code>onConnect</code> 事件回调，当某个连接向服务器发送数据时会回调 <code>onReceive</code> 函数。</p>
 <p>tcp_server.php</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建 Server 对象，监听 127.0.0.1:9501 端口</span></span><br><span class="line">$serv = <span class="keyword">new</span> swoole_server(<span class="string">'127.0.0.1'</span>, <span class="number">9501</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置运行时参数</span></span><br><span class="line">$serv-&gt;set([</span><br><span class="line">    <span class="string">'worker_num'</span> =&gt; <span class="number">8</span>, <span class="comment">// worker进程数</span></span><br><span class="line">    <span class="string">'max_request'</span> =&gt; <span class="number">10000</span>,</span><br><span class="line">]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听连接进入事件</span></span><br><span class="line"><span class="comment">// fd: 客户端连接的唯一标识</span></span><br><span class="line"><span class="comment">// reactor_id: 线程id</span></span><br><span class="line">$serv-&gt;on(<span class="string">'connect'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($serv, $fd, $reactor_id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"Client: &#123;$reactor_id&#125; - &#123;$fd&#125; - Connect.\n"</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听数据接收事件</span></span><br><span class="line">$serv-&gt;on(<span class="string">'receive'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($serv, $fd, $from_id, $data)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 服务段发送消息给客户端</span></span><br><span class="line">    $serv-&gt;send($fd, <span class="string">"Server: &#123;$from_id&#125; - &#123;$fd&#125; -"</span> . $data);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//监听连接关闭事件</span></span><br><span class="line">$serv-&gt;on(<span class="string">'close'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($serv, $fd)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"Client: &#123;$fd&#125; - Close.\n"</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//启动服务器</span></span><br><span class="line">$serv-&gt;start();</span><br></pre></td></tr></table></figure>
@@ -185,6 +142,49 @@
 <p>基于swoole_server或者swoole_http_server进行开发，目前只支持在onRequet, onReceive, onConnect等事件回调函数中使用协程</p>
 </blockquote>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line">$http = <span class="keyword">new</span> swoole_http_server(<span class="string">'0.0.0.0'</span>, <span class="number">8001</span>);</span><br><span class="line"></span><br><span class="line">$http-&gt;on(<span class="string">'request'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($request, $response)</span> </span>&#123;</span><br><span class="line">    $redis = <span class="keyword">new</span> Swoole\Coroutine\Redis();</span><br><span class="line">    $redis-&gt;connet(<span class="string">'127.0.0.1'</span>, <span class="number">6379</span>);</span><br><span class="line">    $value = $redis-&gt;get($request-&gt;get[<span class="string">'a'</span>]);</span><br><span class="line"></span><br><span class="line">    $response-&gt;header(<span class="string">'Content-Type'</span>, <span class="string">'text/plain'</span>);</span><br><span class="line">    $response-&gt;end($value);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">$http-&gt;start();</span><br></pre></td></tr></table></figure>
+<h1 id="Swoole进程模型"><a href="#Swoole进程模型" class="headerlink" title="Swoole进程模型"></a>Swoole进程模型</h1><p>Swoole 是一个多进程模式的框架，当启动一个 Swoole 应用时，一共会创建 <code>2 + n + m</code> 个进程。其中 n 为 Worker 进程数，m 为 TaskWorker 进程数，2 为一个 Master 进程和一个 Manager 进程。它们之间的关系如下图所示：</p>
+<p><img src="http://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/structure.png" alt=""></p>
+<h2 id="Master-进程"><a href="#Master-进程" class="headerlink" title="Master 进程"></a>Master 进程</h2><p>Master进程为主进程，该进程会创建 Manager进程、Reactor线程等。</p>
+<p>主进程内的回调函数：</p>
+<ul>
+<li>onStart</li>
+<li>onShutdown</li>
+<li>onMasterConnect</li>
+<li>onMasterClose</li>
+<li>onTimer</li>
+</ul>
+<h2 id="Reactor线程"><a href="#Reactor线程" class="headerlink" title="Reactor线程"></a>Reactor线程</h2><p>Swoole的主进程是一个多线程的程序。其中有一组很重要的线程，称之为Reactor线程。它就是真正处理TCP连接，收发数据的线程。</p>
+<p>Swoole的主线程在Accept新的连接后，会将这个连接分配给一个固定的Reactor线程，并由这个线程负责监听此socket。在socket可读时读取数据，并进行协议解析，将请求投递到Worker进程。在socket可写时将数据发送给TCP客户端。</p>
+<h2 id="Manager-进程"><a href="#Manager-进程" class="headerlink" title="Manager 进程"></a>Manager 进程</h2><p>Manager进程为管理进程，该进程的作用是创建、管理所有的Worker进程和TaskWorker进程。</p>
+<ul>
+<li>子进程结束运行时，manager进程负责回收此子进程，避免成为僵尸进程。并创建新的子进程</li>
+<li>服务器关闭时，manager进程将发送信号给所有子进程，通知子进程关闭服务</li>
+<li>服务器重启时，manager进程会逐个关闭/重启子进程</li>
+</ul>
+<p>管理进程内的回调函数：</p>
+<ul>
+<li>onManagerStart</li>
+<li>onManagerStop</li>
+</ul>
+<h2 id="Worker-进程"><a href="#Worker-进程" class="headerlink" title="Worker 进程"></a>Worker 进程</h2><p>Worker进程作为Swoole的工作进程，所有的业务逻辑代码均在此进程上运行。当Reactor线程接收到来自客户端的数据后，会将数据打包通过管道发送给某个Worker进程。</p>
+<p>当一个Worker进程被成功创建后，会调用onWorkerStart回调，随后进入事件循环等待数据。当通过回调函数接收到数据后，开始处理数据。如果处理数据过程中出现严重错误导致进程退出，或者Worker进程处理的总请求数达到指定上限，则Worker进程调用onWorkerStop回调并结束进程。主进程会重新拉起新的Worker进程。</p>
+<p>Worker进程内的回调函数：</p>
+<ul>
+<li>onWorkerStart</li>
+<li>onWorkerStop</li>
+<li>onConnect</li>
+<li>onClose</li>
+<li>onReceive</li>
+<li>onTimer</li>
+<li>onFinish</li>
+</ul>
+<h2 id="TaskWorker-进程"><a href="#TaskWorker-进程" class="headerlink" title="TaskWorker 进程"></a>TaskWorker 进程</h2><p>Task Worker是Swoole中一种特殊的工作进程，该进程的作用是处理一些耗时较长的任务，以达到释放Worker进程的目的。Worker进程可以通过swoole_server对象的task方法投递一个任务到Task Worker进程.</p>
+<p>Worker进程通过Unix Sock管道将数据发送给Task Worker，这样Worker进程就可以继续处理新的逻辑，无需等待耗时任务的执行。需要注意的是，由于Task Worker是独立进程，因此无法直接在两个进程之间共享全局变量，需要使用Redis、MySQL或者swoole_table来实现进程间共享数据。</p>
+<p>task_worker进程内的回调函数：</p>
+<ul>
+<li>onTask</li>
+<li>onorkerStart</li>
+</ul>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
 <li><a href="https://wiki.swoole.com/" target="_blank" rel="noopener">Swoole 官方文档</a></li>
 <li><a href="http://www.ruanyifeng.com/blog/2017/05/websocket.html" target="_blank" rel="noopener">WebSocket 教程</a></li>
@@ -220,7 +220,7 @@
     </div>
     
         <div class='side'>
-            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#简介"><span class="toc-number">1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#安装"><span class="toc-number">2.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Swoole进程模型"><span class="toc-number">3.</span> <span class="toc-text">Swoole进程模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Master-进程"><span class="toc-number">3.1.</span> <span class="toc-text">Master 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reactor线程"><span class="toc-number">3.2.</span> <span class="toc-text">Reactor线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Manager-进程"><span class="toc-number">3.3.</span> <span class="toc-text">Manager 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Worker-进程"><span class="toc-number">3.4.</span> <span class="toc-text">Worker 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TaskWorker-进程"><span class="toc-number">3.5.</span> <span class="toc-text">TaskWorker 进程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#快速起步"><span class="toc-number">4.</span> <span class="toc-text">快速起步</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#TCP-服务"><span class="toc-number">4.1.</span> <span class="toc-text">TCP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UDP-服务"><span class="toc-number">4.2.</span> <span class="toc-text">UDP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP-服务"><span class="toc-number">4.3.</span> <span class="toc-text">HTTP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebSocket-服务"><span class="toc-number">4.4.</span> <span class="toc-text">WebSocket 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步Task"><span class="toc-number">4.5.</span> <span class="toc-text">异步Task</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#毫秒定时器"><span class="toc-number">4.6.</span> <span class="toc-text">毫秒定时器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步文件IO"><span class="toc-number">4.7.</span> <span class="toc-text">异步文件IO</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步MySQL"><span class="toc-number">4.8.</span> <span class="toc-text">异步MySQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步Redis"><span class="toc-number">4.9.</span> <span class="toc-text">异步Redis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进程"><span class="toc-number">4.10.</span> <span class="toc-text">进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存"><span class="toc-number">4.11.</span> <span class="toc-text">内存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#协程"><span class="toc-number">4.12.</span> <span class="toc-text">协程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#简介"><span class="toc-number">1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#安装"><span class="toc-number">2.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#快速起步"><span class="toc-number">3.</span> <span class="toc-text">快速起步</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#TCP-服务"><span class="toc-number">3.1.</span> <span class="toc-text">TCP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UDP-服务"><span class="toc-number">3.2.</span> <span class="toc-text">UDP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP-服务"><span class="toc-number">3.3.</span> <span class="toc-text">HTTP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebSocket-服务"><span class="toc-number">3.4.</span> <span class="toc-text">WebSocket 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步Task"><span class="toc-number">3.5.</span> <span class="toc-text">异步Task</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#毫秒定时器"><span class="toc-number">3.6.</span> <span class="toc-text">毫秒定时器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步文件IO"><span class="toc-number">3.7.</span> <span class="toc-text">异步文件IO</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步MySQL"><span class="toc-number">3.8.</span> <span class="toc-text">异步MySQL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#异步Redis"><span class="toc-number">3.9.</span> <span class="toc-text">异步Redis</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进程"><span class="toc-number">3.10.</span> <span class="toc-text">进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存"><span class="toc-number">3.11.</span> <span class="toc-text">内存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#协程"><span class="toc-number">3.12.</span> <span class="toc-text">协程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Swoole进程模型"><span class="toc-number">4.</span> <span class="toc-text">Swoole进程模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Master-进程"><span class="toc-number">4.1.</span> <span class="toc-text">Master 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reactor线程"><span class="toc-number">4.2.</span> <span class="toc-text">Reactor线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Manager-进程"><span class="toc-number">4.3.</span> <span class="toc-text">Manager 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Worker-进程"><span class="toc-number">4.4.</span> <span class="toc-text">Worker 进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TaskWorker-进程"><span class="toc-number">4.5.</span> <span class="toc-text">TaskWorker 进程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-number">5.</span> <span class="toc-text">参考</span></a></li></ol>
         </div>
     
 </div>
