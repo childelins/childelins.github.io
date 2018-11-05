@@ -1,6 +1,6 @@
 ---
 title: virtualbox + vagrant 搭建 docker 环境
-date: 2018-09-27 14:39:35
+date: 2018-10-08 14:39:35
 tags:
 cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/44e818397558c3770b38c6978f35cbb6.png
 ---
