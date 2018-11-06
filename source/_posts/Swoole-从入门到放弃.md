@@ -2,7 +2,7 @@
 title: Swoole 从入门到放弃
 date: 2018-11-04 11:54:19
 tags:
-cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/depositphotos_12385452-stock-illustration-kids-playing.jpg?Expires=1541413195&OSSAccessKeyId=TMP.AQE2Dus0Kld_APQGt4kF3KYuFUZUQOGC_q96kps6VqHLEy0nWcwJWBCElGwqADAtAhRiwGAiQHZcuul3M9UUT3l-RKfsegIVAJLx_8bnNCQBnjlnl0K2Rbvz-nNR&Signature=QBrAkaxiytmcODegtQsMWRyUPrU%3D
+cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/depositphotos_12385452-stock-illustration-kids-playing.jpg 
 ---
 
 # 简介

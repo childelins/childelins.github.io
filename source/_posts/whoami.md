@@ -2,7 +2,7 @@
 title: whoami
 date:
 tags:
-cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/cuentos-infantiles.jpg?Expires=1541413049&OSSAccessKeyId=TMP.AQE2Dus0Kld_APQGt4kF3KYuFUZUQOGC_q96kps6VqHLEy0nWcwJWBCElGwqADAtAhRiwGAiQHZcuul3M9UUT3l-RKfsegIVAJLx_8bnNCQBnjlnl0K2Rbvz-nNR&Signature=VUJidnkfDC17meA8FIbBi%2BiUElk%3D
+cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/cuentos-infantiles.jpg
 ---
 
 > 春江花月夜
