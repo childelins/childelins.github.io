@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+<html lang="" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>childelins&#39;s blog</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    
+    <meta name="description" content="Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，flushall等）
+单线程快的原因：
+
+纯内存(√)
+非阻塞IO
+避免线程切换和竞态消,"> 
+    <meta name="author" content="chidelins"> 
+    <link rel="alternative" href="atom.xml" title="childelins&#39;s blog" type="application/atom+xml"> 
+    
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/css/diaspora.css">
+</head>
+
+<body class="loading">
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">Redis学习笔记</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">Redis学习笔记</h1>
+        <div class="stuff">
+            <span>十一月 06, 2018</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <p>Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，flushall等）</p>
+<p>单线程快的原因：</p>
+<ul>
+<li>纯内存(<strong>√</strong>)</li>
+<li>非阻塞IO</li>
+<li>避免线程切换和竞态消耗</li>
+</ul>
+<h2 id="通用命令"><a href="#通用命令" class="headerlink" title="通用命令"></a>通用命令</h2><ol>
+<li>keys [pattern] 遍历所有的key</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; keys *</span><br><span class="line">1) <span class="string">"laravel:tag:tymon.jwt:key"</span></span><br><span class="line">2) <span class="string">"u:0:info"</span></span><br><span class="line">3) <span class="string">"laravel:company:13:tokenValidSince"</span></span><br><span class="line">4) <span class="string">"u:1821:info"</span></span><br><span class="line">5) <span class="string">"c:13:info"</span></span><br><span class="line">127.0.0.1:6379&gt; keys u:*:info</span><br><span class="line">1) <span class="string">"u:0:info"</span></span><br><span class="line">2) <span class="string">"u:1821:info"</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>keys 命令一般不在生产环境使用</p>
+</blockquote>
+<ol start="2">
+<li>dbsize 计算key的总数</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; dbsize</span><br><span class="line">(<span class="built_in">integer</span>) 5</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>exists [key] 检查key是否存在</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; exists hello</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; del hello</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; exists hello</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>del [key] 删除指定key-value</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line"><span class="string">"world"</span></span><br><span class="line">127.0.0.1:6379&gt; del hello</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line">(nil)</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>expire、ttl、persist</li>
+</ol>
+<ul>
+<li><p>expire [key] [seconds] key在seconds秒后过期</p>
+</li>
+<li><p>ttl [key] 查看key剩余的过期时间</p>
+</li>
+<li><p>persist [key] 去掉key的过期时间</p>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; expire hello 20</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; ttl hello</span><br><span class="line">(<span class="built_in">integer</span>) 18</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line"><span class="string">"world"</span></span><br><span class="line">127.0.0.1:6379&gt; ttl hello</span><br><span class="line">(<span class="built_in">integer</span>) 11</span><br><span class="line">127.0.0.1:6379&gt; ttl hello</span><br><span class="line">(<span class="built_in">integer</span>) -2</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line">(nil)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>-2代表key已经不存在了</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; expire hello 20</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; ttl hello</span><br><span class="line">(<span class="built_in">integer</span>) 17</span><br><span class="line">127.0.0.1:6379&gt; persist hello</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; ttl hello</span><br><span class="line">(<span class="built_in">integer</span>) -1</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line"><span class="string">"world"</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>-1代表key存在，并且没有过期时间</p>
+</blockquote>
+<ol start="6">
+<li>type [key] 返回key的类型</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">type</span> hello</span><br><span class="line">string</span><br><span class="line">127.0.0.1:6379&gt; sadd myset 1 2 3</span><br><span class="line">(<span class="built_in">integer</span>) 3</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">type</span> myset</span><br><span class="line"><span class="built_in">set</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>type的几种返回值类型：string、hash、list、set、zset、none</p>
+</blockquote>
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><blockquote>
+<p>使用场景</p>
+</blockquote>
+<ul>
+<li>缓存</li>
+<li>计数器</li>
+<li>分布式锁</li>
+<li>等等</li>
+</ul>
+<hr>
+<ol>
+<li>get、set</li>
+</ol>
+<ul>
+<li>get [key] 获取key对应的value</li>
+<li>set [key] [value] 设置key-value</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line"><span class="string">"world"</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>incr、decr、incrby、decrby</li>
+</ol>
+<ul>
+<li>incr [key] key自增1，如果key不存在，自增后get(key)=1</li>
+<li>decr [key] key自减1，如果key不存在，自减后get(key)=-1</li>
+<li>incrby [key] [k] key自增k，如果key不存在，自增后get(key)=k</li>
+<li>decrby [key] [k] key自减k，如果key不存在，自减后get(key)=-k</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; get number</span><br><span class="line">(nil)</span><br><span class="line">127.0.0.1:6379&gt; incr number</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; get number</span><br><span class="line"><span class="string">"1"</span></span><br><span class="line">127.0.0.1:6379&gt; incrby number 99</span><br><span class="line">(<span class="built_in">integer</span>) 100</span><br><span class="line">127.0.0.1:6379&gt; decr number</span><br><span class="line">(<span class="built_in">integer</span>) 99</span><br><span class="line">127.0.0.1:6379&gt; get number</span><br><span class="line"><span class="string">"99"</span></span><br><span class="line">127.0.0.1:6379&gt; decrby number 99</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>set、setnx、set xx、set ex</li>
+</ol>
+<ul>
+<li>set [key] [value] 不管key是否存在，都设置</li>
+<li>setnx [key] [value] key不存在时，才设置（添加）</li>
+<li>set [key] [value] [xx] key存在时，才设置（更新）</li>
+<li>set [key] [value] [ex] [second] 设置key的同时设置过期时间，set 和 expire 命令的组合</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; exists php</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> php good</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; setnx php bad</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> php best xx</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; get php</span><br><span class="line"><span class="string">"best"</span></span><br><span class="line">127.0.0.1:6379&gt; exists java</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; setnx java best</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> java easy xx</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; get java</span><br><span class="line"><span class="string">"easy"</span></span><br><span class="line">127.0.0.1:6379&gt; exists lua</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> lua hehe xx</span><br><span class="line">(nil)</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> go nice ex 10</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; ttl go</span><br><span class="line">(<span class="built_in">integer</span>) 8</span><br><span class="line">127.0.0.1:6379&gt; ttl go</span><br><span class="line">(<span class="built_in">integer</span>) -2</span><br><span class="line">127.0.0.1:6379&gt; get go</span><br><span class="line">(nil)</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>mget、mset</li>
+</ol>
+<ul>
+<li>mget [key1] [key2]… 批量获取key</li>
+<li>mset [key1] [value1] [key2] [value2]… 批量设置key-value</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; mset hello world java best php good</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; mget hello java php</span><br><span class="line">1) <span class="string">"world"</span></span><br><span class="line">2) <span class="string">"best"</span></span><br><span class="line">3) <span class="string">"good"</span></span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>getset、append、strlen</li>
+</ol>
+<ul>
+<li>getset [key] [newvalue] 设置新的value并返回旧的value</li>
+<li>append [key] [value] 将value追加到旧的value</li>
+<li>strlen [key] 返回字符串的长度（注意中文）</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello world</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; getset hello php</span><br><span class="line"><span class="string">"world"</span></span><br><span class="line">127.0.0.1:6379&gt; append hello <span class="string">",java"</span></span><br><span class="line">(<span class="built_in">integer</span>) 8</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line"><span class="string">"php,java"</span></span><br><span class="line">127.0.0.1:6379&gt; strlen hello</span><br><span class="line">(<span class="built_in">integer</span>) 8</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello <span class="string">"足球"</span></span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; strlen hello</span><br><span class="line">(<span class="built_in">integer</span>) 6</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>incrbyfloat、getrange、setrange</li>
+</ol>
+<ul>
+<li>incrbyfloat [key] [value] 增加key对应的浮点值</li>
+<li>getrange [key] [start] [end] 获取字符串指定下标所有的值</li>
+<li>setrange [key] [index] [value] 设置指定下标所有对应的值</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; incr counter</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; incrbyfloat counter 1.1</span><br><span class="line"><span class="string">"2.1"</span></span><br><span class="line">127.0.0.1:6379&gt; get counter</span><br><span class="line"><span class="string">"2.1"</span></span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> hello javabest</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; getrange hello 0 2</span><br><span class="line"><span class="string">"jav"</span></span><br><span class="line">127.0.0.1:6379&gt; setrange hello 4 p</span><br><span class="line">(<span class="built_in">integer</span>) 8</span><br><span class="line">127.0.0.1:6379&gt; get hello</span><br><span class="line"><span class="string">"javapest"</span></span><br></pre></td></tr></table></figure>
+<h2 id="哈希"><a href="#哈希" class="headerlink" title="哈希"></a>哈希</h2><ol>
+<li>hget、hset、hdel</li>
+</ol>
+<ul>
+<li>hget [key] [field]  获取hash key对应的field的value</li>
+<li>hset [key] [field] [value] 设置hash key对应的field的value</li>
+<li>hdel [key] [field] 删除hash key对应的field的value</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hset user:1:info age 23</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hget user:1:info age</span><br><span class="line"><span class="string">"23"</span></span><br><span class="line">127.0.0.1:6379&gt; hset user:1:info name kang</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hgetall user:1:info</span><br><span class="line">1) <span class="string">"age"</span></span><br><span class="line">2) <span class="string">"23"</span></span><br><span class="line">3) <span class="string">"name"</span></span><br><span class="line">4) <span class="string">"kang"</span></span><br><span class="line">127.0.0.1:6379&gt; hdel user:1:info age</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hgetall user:1:info</span><br><span class="line">1) <span class="string">"name"</span></span><br><span class="line">2) <span class="string">"kang"</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>hexists、hlen</li>
+</ol>
+<ul>
+<li>hexists [key] [field] 判断hash key是否有field</li>
+<li>hlen [key] 获取hash key field的数量</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hgetall user:1:info</span><br><span class="line">1) <span class="string">"name"</span></span><br><span class="line">2) <span class="string">"kang"</span></span><br><span class="line">127.0.0.1:6379&gt; hexists user:1:info name</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hlen user:1:info</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>hmget、hmset</li>
+</ol>
+<ul>
+<li>hmget [key] [field1] [field2] … 批量获取hash key的一批field对应的值</li>
+<li>hmset [key] [field1] [value1] [field2] [value2] … 批量设置hash key的一批field value</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hmset user:2:info name june age 18</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; hmget user:2:info name age</span><br><span class="line">1) <span class="string">"june"</span></span><br><span class="line">2) <span class="string">"18"</span></span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>hgetall、hvals、hkeys</li>
+</ol>
+<ul>
+<li>hgetll [key] 返回hash key对应所有的field和value</li>
+<li>hvals [key] 返回hash key对应所有的value</li>
+<li>hkeys [key] 返回hash key对应所有的field</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hgetall user:1:info</span><br><span class="line">1) <span class="string">"name"</span></span><br><span class="line">2) <span class="string">"kaka"</span></span><br><span class="line">3) <span class="string">"age"</span></span><br><span class="line">4) <span class="string">"30"</span></span><br><span class="line">5) <span class="string">"page"</span></span><br><span class="line">6) <span class="string">"50"</span></span><br><span class="line">127.0.0.1:6379&gt; hvals user:1:info</span><br><span class="line">1) <span class="string">"kaka"</span></span><br><span class="line">2) <span class="string">"30"</span></span><br><span class="line">3) <span class="string">"50"</span></span><br><span class="line">127.0.0.1:6379&gt; hkeys user:1:info</span><br><span class="line">1) <span class="string">"name"</span></span><br><span class="line">2) <span class="string">"age"</span></span><br><span class="line">3) <span class="string">"page"</span></span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>hsetnx、hincrby、hincybyfloat</li>
+</ol>
+<ul>
+<li>hsetnx [key] [field] [value] 设置hash key对应field的value（如果field已经存在，则失败）</li>
+<li>hincrby [key] [field] [count] hash key对应field的value自增count</li>
+<li>hincrbyfloat [key] [field] [count] hincyby浮点数版</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hsetnx user:1:info name haha</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; hsetnx user:1:info sex 1</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hincrby user:1:info age 5</span><br><span class="line">(<span class="built_in">integer</span>) 35</span><br><span class="line">127.0.0.1:6379&gt; hsetnx user:1:info num 1.2</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hincrbyfloat user:1:info num 2.2</span><br><span class="line"><span class="string">"3.4"</span></span><br><span class="line">127.0.0.1:6379&gt; hgetall user:1:info</span><br><span class="line"> 1) <span class="string">"name"</span></span><br><span class="line"> 2) <span class="string">"kaka"</span></span><br><span class="line"> 3) <span class="string">"age"</span></span><br><span class="line"> 4) <span class="string">"35"</span></span><br><span class="line"> 5) <span class="string">"page"</span></span><br><span class="line"> 6) <span class="string">"50"</span></span><br><span class="line"> 7) <span class="string">"sex"</span></span><br><span class="line"> 8) <span class="string">"1"</span></span><br><span class="line"> 9) <span class="string">"num"</span></span><br><span class="line">10) <span class="string">"3.4"</span></span><br></pre></td></tr></table></figure>
+<h2 id="列表"><a href="#列表" class="headerlink" title="列表"></a>列表</h2><h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>keys</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>dbsize</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>del</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>expire</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>type</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>get</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>set</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>incr</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>decr</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>incrby</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>decrby</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>setnx</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>set xx</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>set ex</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>mget</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>mset</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>getset</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>append</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>strlen</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>incrbyfloat</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>getrange</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>setrange</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hget</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hset</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hdel</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hexists</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hlen</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hmget</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>hmset</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>hgetall</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>hvals</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>hkeys</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>hsetnx</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hincrby</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>hincybyfloat</td>
+<td>O(1)</td>
+</tr>
+</tbody>
+</table>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                    
+                        <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通用命令"><span class="toc-number">1.</span> <span class="toc-text">通用命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#字符串"><span class="toc-number">2.</span> <span class="toc-text">字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#哈希"><span class="toc-number">3.</span> <span class="toc-text">哈希</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#列表"><span class="toc-number">4.</span> <span class="toc-text">列表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#时间负责度"><span class="toc-number">5.</span> <span class="toc-text">时间负责度</span></a></li></ol>
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/diaspora.js"></script>
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-125814240-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+
+
+</html>
