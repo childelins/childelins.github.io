@@ -10,11 +10,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
-    <meta name="keywords" content="Fechin,"> 
     
+    <meta name="description" content="Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，flushall等）
+单线程快的原因：
+
+纯内存(√)
+非阻塞IO
+避免线程切换和竞态消,"> 
     <meta name="author" content="chidelins"> 
     <link rel="alternative" href="atom.xml" title="childelins&#39;s blog" type="application/atom+xml"> 
-    <link rel="icon" href="/img/favicon.png"> 
+    
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
     <link rel="stylesheet" href="/css/diaspora.css">
 </head>
@@ -25,7 +30,7 @@
     <ul id="menu-menu" class="menu">
         
         <li class="pview menu-item menu-item-type-post_type menu-item-object-page">
-            <a href="/2018/09/21/whoami" title="Whoami" target="_blank" rel="noopener">Whoami</a>
+            <a href="/2018/09/27/whoami" title="Whoami" target="_blank" rel="noopener">Whoami</a>
         </li>
         
         <li class="  menu-item menu-item-type-post_type menu-item-object-page">
@@ -67,51 +72,15 @@
     </div>
     
     <div id="post0">
-        <p>十一月 19, 2018</p>
-        <h2><a href="/2018/11/19/redis-学习后记/" title="redis 学习后记" class="posttitle">redis 学习后记</a></h2>
-        <p class="summary">时间复杂度
-
-
-命令
-复杂度
-
-
-
-
-hget
-O(1)
-
-
-hset
-O(1)
-
-
-hdel
-O(1)
-
-
-he...</p>
+        <p>十一月 06, 2018</p>
+        <h2><a href="/2018/11/06/Redis学习笔记/" title="Redis学习笔记" class="posttitle">Redis学习笔记</a></h2>
+        <p class="summary">Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，fl...</p>
     </div>
     
 </div>
 
     <div id="primary">
         
-<div class="post">
-    <a href="/2018/11/19/whoami/" title="whoami">
-        <img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/cuentos-infantiles.jpg" class="cover" width="680" height="440">
-    </a>
-    <div class="else">
-        <p>十一月 19, 2018</p>
-        <h3><a href="/2018/11/19/whoami/" title="whoami" class="posttitle">whoami</a></h3>
-        <p>
-春江花月夜
-
-春江潮水连海平，海上明月共潮生。滟滟随波千万里，何处春江无月明！江流宛转绕芳甸，月照花林皆似霰。空里流霜不觉飞，汀上白沙看不见。江天一色无...</p>
-    </div>
-</div>
-
-
 <div class="post">
     <a href="/2018/11/04/Swoole-从入门到放弃/" title="Swoole 从入门到放弃">
         <img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/depositphotos_12385452-stock-illustration-kids-playing.jpg" class="cover" width="680" height="440">
@@ -155,12 +124,27 @@ he...</p>
 
 
 <div class="post">
-    <a href="/2018/09/21/hello-world/" title="Hello World">
+    <a href="/2018/09/27/whoami/" title="whoami">
+        <img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/cuentos-infantiles.jpg" class="cover" width="680" height="440">
+    </a>
+    <div class="else">
+        <p>九月 27, 2018</p>
+        <h3><a href="/2018/09/27/whoami/" title="whoami" class="posttitle">whoami</a></h3>
+        <p>
+春江花月夜
+
+春江潮水连海平，海上明月共潮生。滟滟随波千万里，何处春江无月明！江流宛转绕芳甸，月照花林皆似霰。空里流霜不觉飞，汀上白沙看不见。江天一色无...</p>
+    </div>
+</div>
+
+
+<div class="post">
+    <a href="/2018/09/27/hello-world/" title="Hello World">
         <img src="/img/cover.jpg" class="cover" width="680" height="440">
     </a>
     <div class="else">
-        <p>九月 21, 2018</p>
-        <h3><a href="/2018/09/21/hello-world/" title="Hello World" class="posttitle">Hello World</a></h3>
+        <p>九月 27, 2018</p>
+        <h3><a href="/2018/09/27/hello-world/" title="Hello World" class="posttitle">Hello World</a></h3>
         <p>Welcome to Hexo! This is your very first post. Check documentation for more i...</p>
     </div>
 </div>
