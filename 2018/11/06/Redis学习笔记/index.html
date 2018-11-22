@@ -214,7 +214,64 @@
 <li>hincrbyfloat [key] [field] [count] hincyby浮点数版</li>
 </ul>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; hsetnx user:1:info name haha</span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br><span class="line">127.0.0.1:6379&gt; hsetnx user:1:info sex 1</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hincrby user:1:info age 5</span><br><span class="line">(<span class="built_in">integer</span>) 35</span><br><span class="line">127.0.0.1:6379&gt; hsetnx user:1:info num 1.2</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; hincrbyfloat user:1:info num 2.2</span><br><span class="line"><span class="string">"3.4"</span></span><br><span class="line">127.0.0.1:6379&gt; hgetall user:1:info</span><br><span class="line"> 1) <span class="string">"name"</span></span><br><span class="line"> 2) <span class="string">"kaka"</span></span><br><span class="line"> 3) <span class="string">"age"</span></span><br><span class="line"> 4) <span class="string">"35"</span></span><br><span class="line"> 5) <span class="string">"page"</span></span><br><span class="line"> 6) <span class="string">"50"</span></span><br><span class="line"> 7) <span class="string">"sex"</span></span><br><span class="line"> 8) <span class="string">"1"</span></span><br><span class="line"> 9) <span class="string">"num"</span></span><br><span class="line">10) <span class="string">"3.4"</span></span><br></pre></td></tr></table></figure>
-<h2 id="列表"><a href="#列表" class="headerlink" title="列表"></a>列表</h2><h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
+<h2 id="列表"><a href="#列表" class="headerlink" title="列表"></a>列表</h2><p>1、rpush、lpush、linsert</p>
+<ul>
+<li>rpush [key] [value1] [value2] … 从列表右端插入值（1-N个）</li>
+<li>lpush [key] [value1] [value2] … 从列表左端插入值（1-N个）</li>
+<li>linsert [key] [before|after] [value] [newValue] 在list指定的值前|后插入newValue</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; rpush list1 a b c</span><br><span class="line">(<span class="built_in">integer</span>) 3</span><br><span class="line">127.0.0.1:6379&gt; lrange list1 0 -1</span><br><span class="line">1) <span class="string">"a"</span></span><br><span class="line">2) <span class="string">"b"</span></span><br><span class="line">3) <span class="string">"c"</span></span><br><span class="line">127.0.0.1:6379&gt; lpush list2 a b c</span><br><span class="line">(<span class="built_in">integer</span>) 3</span><br><span class="line">127.0.0.1:6379&gt; lrange list2 0 -1</span><br><span class="line">1) <span class="string">"c"</span></span><br><span class="line">2) <span class="string">"b"</span></span><br><span class="line">3) <span class="string">"a"</span></span><br><span class="line">127.0.0.1:6379&gt; linsert list1 before b java</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br><span class="line">127.0.0.1:6379&gt; linsert list1 after b php</span><br><span class="line">(<span class="built_in">integer</span>) 5</span><br><span class="line">127.0.0.1:6379&gt; lrange list1 0 -1</span><br><span class="line">1) <span class="string">"a"</span></span><br><span class="line">2) <span class="string">"java"</span></span><br><span class="line">3) <span class="string">"b"</span></span><br><span class="line">4) <span class="string">"php"</span></span><br><span class="line">5) <span class="string">"c"</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>lpop、rpop、lrem</li>
+</ol>
+<ul>
+<li>lpop [key] 从列表左侧弹出一个item</li>
+<li>rpop [key] 从列表右侧弹出一个item</li>
+<li>lrem [key] [count] [value] 根据count值，从列表中删除所有value相等的项<br>(1) count&gt;0，从左到右，删除最多count个value相等的项<br>(2) count&lt;0，从右到左，删除最多Math.abs(count)个value相等的项<br>(3) count=0，删除所有value相等的项</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; lpop list1</span><br><span class="line"><span class="string">"a"</span></span><br><span class="line">127.0.0.1:6379&gt; lrange list1 0 -1</span><br><span class="line">1) <span class="string">"java"</span></span><br><span class="line">2) <span class="string">"b"</span></span><br><span class="line">3) <span class="string">"php"</span></span><br><span class="line">4) <span class="string">"c"</span></span><br><span class="line">127.0.0.1:6379&gt; rpop list1</span><br><span class="line"><span class="string">"c"</span></span><br><span class="line">127.0.0.1:6379&gt; lrange list1 0 -1</span><br><span class="line">1) <span class="string">"java"</span></span><br><span class="line">2) <span class="string">"b"</span></span><br><span class="line">3) <span class="string">"php"</span></span><br><span class="line">127.0.0.1:6379&gt; lrem list1 0 b</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; lrange list1 0 -1</span><br><span class="line">1) <span class="string">"java"</span></span><br><span class="line">2) <span class="string">"php"</span></span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>ltrim</li>
+</ol>
+<ul>
+<li>ltrim [key] [start] [end] 按照索引范围修剪列表</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; rpush list3 a b c d e f</span><br><span class="line">(<span class="built_in">integer</span>) 6</span><br><span class="line">127.0.0.1:6379&gt; lrange list3 0 -1</span><br><span class="line">1) <span class="string">"a"</span></span><br><span class="line">2) <span class="string">"b"</span></span><br><span class="line">3) <span class="string">"c"</span></span><br><span class="line">4) <span class="string">"d"</span></span><br><span class="line">5) <span class="string">"e"</span></span><br><span class="line">6) <span class="string">"f"</span></span><br><span class="line">127.0.0.1:6379&gt; ltrim list3 1 4</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; lrange list3 0 -1</span><br><span class="line">1) <span class="string">"b"</span></span><br><span class="line">2) <span class="string">"c"</span></span><br><span class="line">3) <span class="string">"d"</span></span><br><span class="line">4) <span class="string">"e"</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在一个大范围的list，如果直接执行del key，会阻塞运行，开销很大。这时可以用ltrim不断修剪范围，来达到删除的效果。</p>
+</blockquote>
+<ol start="4">
+<li>lrange、lindex、llen</li>
+</ol>
+<ul>
+<li>lrange [key] [start] [end] 获取列表指定索引范围所有item（包含end）</li>
+<li>lindex [key] [index] 获取列表指定索引的item</li>
+<li>llen [key] 获取列表长度</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; lrange list3 0 -1</span><br><span class="line">1) <span class="string">"b"</span></span><br><span class="line">2) <span class="string">"c"</span></span><br><span class="line">3) <span class="string">"d"</span></span><br><span class="line">4) <span class="string">"e"</span></span><br><span class="line">127.0.0.1:6379&gt; lrange list3 0 2</span><br><span class="line">1) <span class="string">"b"</span></span><br><span class="line">2) <span class="string">"c"</span></span><br><span class="line">3) <span class="string">"d"</span></span><br><span class="line">127.0.0.1:6379&gt; lindex list3 0</span><br><span class="line"><span class="string">"b"</span></span><br><span class="line">127.0.0.1:6379&gt; lindex list3 -1</span><br><span class="line"><span class="string">"e"</span></span><br><span class="line">127.0.0.1:6379&gt; llen list3</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>lset</li>
+</ol>
+<ul>
+<li>lset [key] [index] [newValue] 设置列表指定索引值为newValue</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; lset list3 1 php</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; lrange list3 0 -1</span><br><span class="line">1) <span class="string">"b"</span></span><br><span class="line">2) <span class="string">"php"</span></span><br><span class="line">3) <span class="string">"d"</span></span><br><span class="line">4) <span class="string">"e"</span></span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>blpop、brpop</li>
+</ol>
+<ul>
+<li>blpop [key] [timeout] lpop阻塞版本，timeout是阻塞超时时间，timeout=0为永远不阻塞</li>
+<li>brpop [key] [timeout] rpop阻塞版本，timeout是阻塞超时时间，timeout=0为永远不阻塞</li>
+</ul>
+<blockquote>
+<ol>
+<li>LPUSH + LPOP = Stack</li>
+<li>LPUSH + RPOP = Queue</li>
+<li>LPUSH + LTRIM = Capped Collection</li>
+<li>LPUSH + BRPOP = Message Queue</li>
+</ol>
+</blockquote>
+<h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
 <thead>
 <tr>
 <th>命令</th>
@@ -364,6 +421,58 @@
 </tr>
 <tr>
 <td>hincybyfloat</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>rpush</td>
+<td>O(1~n)</td>
+</tr>
+<tr>
+<td>lpush</td>
+<td>O(1~n)</td>
+</tr>
+<tr>
+<td>linsert</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>lpop</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>rpop</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>lrem</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>ltrim</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>lrange</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>lindex</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>llen</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>lset</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>blpop</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>brpop</td>
 <td>O(1)</td>
 </tr>
 </tbody>
