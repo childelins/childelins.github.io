@@ -382,7 +382,139 @@ OK
 
 ## 列表
 
+1、rpush、lpush、linsert
 
+* rpush [key] [value1] [value2] ... 从列表右端插入值（1-N个）
+* lpush [key] [value1] [value2] ... 从列表左端插入值（1-N个）
+* linsert [key] [before|after] [value] [newValue] 在list指定的值前|后插入newValue
+
+```sh
+127.0.0.1:6379> rpush list1 a b c
+(integer) 3
+127.0.0.1:6379> lrange list1 0 -1
+1) "a"
+2) "b"
+3) "c"
+127.0.0.1:6379> lpush list2 a b c
+(integer) 3
+127.0.0.1:6379> lrange list2 0 -1
+1) "c"
+2) "b"
+3) "a"
+127.0.0.1:6379> linsert list1 before b java
+(integer) 4
+127.0.0.1:6379> linsert list1 after b php
+(integer) 5
+127.0.0.1:6379> lrange list1 0 -1
+1) "a"
+2) "java"
+3) "b"
+4) "php"
+5) "c"
+```
+
+2. lpop、rpop、lrem
+
+* lpop [key] 从列表左侧弹出一个item
+* rpop [key] 从列表右侧弹出一个item
+* lrem [key] [count] [value] 根据count值，从列表中删除所有value相等的项   
+(1) count>0，从左到右，删除最多count个value相等的项   
+(2) count<0，从右到左，删除最多Math.abs(count)个value相等的项   
+(3) count=0，删除所有value相等的项
+
+```sh
+127.0.0.1:6379> lpop list1
+"a"
+127.0.0.1:6379> lrange list1 0 -1
+1) "java"
+2) "b"
+3) "php"
+4) "c"
+127.0.0.1:6379> rpop list1
+"c"
+127.0.0.1:6379> lrange list1 0 -1
+1) "java"
+2) "b"
+3) "php"
+127.0.0.1:6379> lrem list1 0 b
+(integer) 1
+127.0.0.1:6379> lrange list1 0 -1
+1) "java"
+2) "php"
+```
+
+3. ltrim
+
+* ltrim [key] [start] [end] 按照索引范围修剪列表
+
+```sh
+127.0.0.1:6379> rpush list3 a b c d e f
+(integer) 6
+127.0.0.1:6379> lrange list3 0 -1
+1) "a"
+2) "b"
+3) "c"
+4) "d"
+5) "e"
+6) "f"
+127.0.0.1:6379> ltrim list3 1 4
+OK
+127.0.0.1:6379> lrange list3 0 -1
+1) "b"
+2) "c"
+3) "d"
+4) "e"
+```
+
+> 在一个大范围的list，如果直接执行del key，会阻塞运行，开销很大。这时可以用ltrim不断修剪范围，来达到删除的效果。
+
+4. lrange、lindex、llen
+
+* lrange [key] [start] [end] 获取列表指定索引范围所有item（包含end）
+* lindex [key] [index] 获取列表指定索引的item
+* llen [key] 获取列表长度
+
+```sh
+127.0.0.1:6379> lrange list3 0 -1
+1) "b"
+2) "c"
+3) "d"
+4) "e"
+127.0.0.1:6379> lrange list3 0 2
+1) "b"
+2) "c"
+3) "d"
+127.0.0.1:6379> lindex list3 0
+"b"
+127.0.0.1:6379> lindex list3 -1
+"e"
+127.0.0.1:6379> llen list3
+(integer) 4
+```
+
+5. lset
+
+* lset [key] [index] [newValue] 设置列表指定索引值为newValue
+
+```sh
+127.0.0.1:6379> lset list3 1 php
+OK
+127.0.0.1:6379> lrange list3 0 -1
+1) "b"
+2) "php"
+3) "d"
+4) "e"
+```
+
+6. blpop、brpop
+
+* blpop [key] [timeout] lpop阻塞版本，timeout是阻塞超时时间，timeout=0为永远不阻塞
+* brpop [key] [timeout] rpop阻塞版本，timeout是阻塞超时时间，timeout=0为永远不阻塞
+
+> 1. LPUSH + LPOP = Stack
+> 2. LPUSH + RPOP = Queue
+> 3. LPUSH + LTRIM = Capped Collection
+> 4. LPUSH + BRPOP = Message Queue
 
 
 ## 时间负责度
@@ -425,4 +557,17 @@ OK
 | hsetnx | O(1) |
 | hincrby | O(1) |
 | hincybyfloat | O(1) |
+| rpush | O(1~n) |
+| lpush | O(1~n) |
+| linsert | O(n) |
+| lpop | O(1) |
+| rpop | O(1) |
+| lrem | O(n) |
+| ltrim | O(n) |
+| lrange | O(n) |
+| lindex | O(n) |
+| llen | O(1) |
+| lset | O(n) |
+| blpop | O(1) |
+| brpop | O(1) |
 
