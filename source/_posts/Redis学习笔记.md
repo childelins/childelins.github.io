@@ -124,7 +124,7 @@ set
 > type的几种返回值类型：string、hash、list、set、zset、none
 
 
-## 字符串
+## 字符串(string)
 
 > 使用场景
 
@@ -271,7 +271,7 @@ OK
 "javapest"
 ```
 
-## 哈希
+## 哈希(hash)
 
 1. hget、hset、hdel
 
@@ -380,7 +380,7 @@ OK
 10) "3.4"
 ```
 
-## 列表
+## 列表(list)
 
 1、rpush、lpush、linsert
 
@@ -517,6 +517,175 @@ OK
 > 4. LPUSH + BRPOP = Message Queue
 
 
+## 集合(set)
+
+1. sadd、srem
+
+* sadd [key] [element] 向集合key添加element(如果element已经存在，添加失败)
+* srem [key] [element] 将集合key中的element移除掉
+
+```sh
+127.0.0.1:6379> sadd set1 a b c d e
+(integer) 5
+127.0.0.1:6379> srem set1 d
+(integer) 1
+127.0.0.1:6379> smembers set1
+1) "c"
+2) "a"
+3) "b"
+4) "e"
+```
+
+2. scard、sismember、srandmember、spop、smembers
+
+* scard [key] 集合中的元素个数
+* sismember [key] [member] 元素在集合中是否存在
+* srandmember [key] [count] 从集合中随机取出count个元素
+* spop [key] 从集合中随机弹出一个元素
+* smembers [key] 取出集合中的所有元素
+
+```sh
+127.0.0.1:6379> scard set1
+(integer) 4
+127.0.0.1:6379> sismember set1 a
+(integer) 1
+127.0.0.1:6379> srandmember set1 1
+1) "b"
+127.0.0.1:6379> srandmember set1 2
+1) "b"
+2) "e"
+127.0.0.1:6379> smembers set1
+1) "c"
+2) "a"
+3) "b"
+4) "e"
+127.0.0.1:6379> spop set1
+"e"
+127.0.0.1:6379> smembers set1
+1) "a"
+2) "b"
+3) "c"
+```
+
+> 注意smembers获取的元素内容是无序的。如果是一个大范围的集合，直接使用smembers可能会阻塞运行，这时可以使用sscan来处理。
+
+3. sdiff、sinter、sunion
+
+* sdiff [key1] [key2] 集合间的差集
+* sinter [key1] [key2] 集合间的交集
+* sunion [key1] [key2] 集合间的并集
+
+> sdiff|sinter|sunion + store destkey ...  将差集、交集、并集的结果保存在destkey中
+
+```sh
+127.0.0.1:6379> sadd user:1:follow it music his sports
+(integer) 4
+127.0.0.1:6379> sadd user:2:follow it news ent sports
+(integer) 4
+127.0.0.1:6379> sdiff user:1:follow user:2:follow
+1) "music"
+2) "his"
+127.0.0.1:6379> sinter user:1:follow user:2:follow
+1) "it"
+2) "sports"
+127.0.0.1:6379> sunion user:1:follow user:2:follow
+1) "sports"
+2) "it"
+3) "news"
+4) "music"
+5) "ent"
+6) "his"
+```
+
+## 有序集合(zset)
+
+1. zadd、zrem
+
+* zadd [key] [score] [element] ...  添加score和element
+* zrem [key] [element] ... 删除元素
+
+```sh
+127.0.0.1:6379> zadd user:1:ranking 1 kris 91 mike 200 frank 220 chris
+(integer) 4
+127.0.0.1:6379> zadd user:1:ranking 225 tom
+(integer) 1
+127.0.0.1:6379> zrem user:1:ranking tom
+(integer) 1
+127.0.0.1:6379> zrange user:1:ranking 0 -1
+1) "kris"
+2) "mike"
+3) "frank"
+4) "chris"
+```
+
+2. zscore、zincrby、zcard
+
+* zscore [key] [element] 返回元素的分数
+* zincrby [key] [incrScore] [element] 增加或减少元素的分数
+* zcard [key] 返回元素中的个数
+
+```sh
+127.0.0.1:6379> zscore user:1:ranking chris
+"220"
+127.0.0.1:6379> zincrby user:1:ranking 9 mike
+"100"
+127.0.0.1:6379> zcard user:1:ranking
+(integer) 4
+```
+
+3. zrank、zrange、zrangebyscore
+
+* zrank [key] [element] 获取排名(从小到大)
+* zrange [key] [start] [end] [WITHSCORES] 获取指定范围内的元素，并带上分值
+* zrangebyscore [key] [minScore] [maxScore] [WITHSCORES] 获取指定分数范围内的元素，并带上分值
+
+```sh
+127.0.0.1:6379> zrank user:1:ranking frank
+(integer) 2
+127.0.0.1:6379> zrange user:1:ranking 0 -1 WITHSCORES
+1) "kris"
+2) "1"
+3) "mike"
+4) "100"
+5) "frank"
+6) "200"
+7) "chris"
+8) "220"
+127.0.0.1:6379> zrangebyscore user:1:ranking 90 210 withscores
+1) "mike"
+2) "100"
+3) "frank"
+4) "200"
+```
+
+4. zcount、zremrangebyrank、zremrangebyscore
+
+* zcount [key] [minScore] [maxScore] 获取指定分数范围内的元素个数
+* zremrangebyrank [key] [start] [end] 删除指定排名范围内的元素
+* zremrangebyscore [key] [minScore] [maxScore] 删除指定分数范围内的元素
+
+```sh
+127.0.0.1:6379> zcount user:1:ranking 200 221
+(integer) 2
+127.0.0.1:6379> zremrangebyrank user:1:ranking 1 2
+(integer) 2
+127.0.0.1:6379> zrange user:1:ranking 0 -1 withscores
+1) "kris"
+2) "1"
+3) "chris"
+4) "220"
+127.0.0.1:6379> zremrangebyscore user:1:ranking 1 100
+(integer) 1
+127.0.0.1:6379> zrange user:1:ranking 0 -1 withscores
+1) "chris"
+2) "220"
+```
+
+5. zunionstore、zinterstore
+
+集合间操作
+
+
 ## 时间负责度
 
 | 命令 | 时间复杂度 |
@@ -570,4 +739,16 @@ OK
 | lset | O(n) |
 | blpop | O(1) |
 | brpop | O(1) |
+| sadd | O(1) |
+| srem | O(1) |
+| zadd | O(logN) |
+| zrem | O(1) |
+| zscore | O(1) |
+| zincrby | O(1) |
+| zcard | O(1) |
+| zrange | O(log(n)+m) |
+| zrangebyscore | O(log(n)+m) |
+| zcount | O(log(n)+m) |
+| zremrangebyrank | O(log(n)+m) |
+
 
