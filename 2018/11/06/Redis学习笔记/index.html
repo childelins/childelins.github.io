@@ -344,7 +344,61 @@
 <li>zunionstore、zinterstore</li>
 </ol>
 <p>集合间操作</p>
-<h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
+<h2 id="其他功能"><a href="#其他功能" class="headerlink" title="其他功能"></a>其他功能</h2><h3 id="慢查询"><a href="#慢查询" class="headerlink" title="慢查询"></a>慢查询</h3><ol>
+<li>生命周期</li>
+</ol>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181128095642.png" alt=""></p>
+<blockquote>
+<p>两点说明：<br>(1) 慢查询发生在第3阶段<br>(2) 客户端超时不一定是慢查询，但慢查询是客户端超时的一个可能因素</p>
+</blockquote>
+<ol start="2">
+<li>两个配置</li>
+</ol>
+<p>(1) slowlog-max-len 固定长度<br>(2) slowlog-log-slower-than 慢查询阙值(单位：微秒)</p>
+<p>慢查询是一个<strong>先进先出的队列</strong>，简单的说就是一条命令在第3步的执行过程中被列入慢查询的范围内，它就会进入一个队列。这个队列是用redis的列表来实现的，而且这个队列是一个<strong>固定长度</strong>的。并且它是<strong>保存在内存中</strong>的，随着redis的重启而消失。</p>
+<ol start="3">
+<li>配置方法</li>
+</ol>
+<p>(1) 默认值</p>
+<ul>
+<li>slowlog-max-len = 128</li>
+<li>slowlog-log-slower-than = 10000</li>
+</ul>
+<p>(2) 修改配置文件重启<br>    在第一次redis配置时修改，生产环境不建议重启。</p>
+<p>(3) 动态配置</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; config <span class="built_in">set</span> slowlog-max-len 1000</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; config <span class="built_in">set</span> slowlog-log-slower-than 10000</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>三个命令</li>
+</ol>
+<ul>
+<li>slowlog get [n] 获取n条慢查询队列记录</li>
+<li>slowlog len 获取慢查询队列长度</li>
+<li>slowlog reset 清空慢查询队列</li>
+</ul>
+<ol start="5">
+<li>运维经验</li>
+</ol>
+<ul>
+<li>slowlog-max-len 不要设置过小，通常设置1000左右</li>
+<li>slowlog-log-slower-than 不要设置过大，默认10ms，通常设置1ms</li>
+<li>定期持久化慢查询</li>
+</ul>
+<h3 id="pipeline"><a href="#pipeline" class="headerlink" title="pipeline"></a>pipeline</h3><ol>
+<li>什么是流水线</li>
+</ol>
+<p>批量处理命令，1次pipeline(n条命令) = 1次网络时间 + n次命令时间</p>
+<blockquote>
+<p>redis命令的执行时间通常是微妙级别<br>pipeline其实就是为了解决n次网络时间耗时的问题</p>
+</blockquote>
+<ol start="2">
+<li>使用建议</li>
+</ol>
+<ul>
+<li>注意每次pipeline携带的数据量</li>
+<li>pipeline每次只能作用在一个Redis节点上</li>
+<li>M操作与pipeline的区别，mGet、mSet这些都是原子操作，pipeline会拆分执行，是非原子操作</li>
+</ul>
+<h3 id="发布订阅"><a href="#发布订阅" class="headerlink" title="发布订阅"></a>发布订阅</h3><h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
 <thead>
 <tr>
 <th>命令</th>
@@ -624,7 +678,7 @@
     </div>
     
         <div class='side'>
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通用命令"><span class="toc-number">1.</span> <span class="toc-text">通用命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#字符串-string"><span class="toc-number">2.</span> <span class="toc-text">字符串(string)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#哈希-hash"><span class="toc-number">3.</span> <span class="toc-text">哈希(hash)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#列表-list"><span class="toc-number">4.</span> <span class="toc-text">列表(list)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集合-set"><span class="toc-number">5.</span> <span class="toc-text">集合(set)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有序集合-zset"><span class="toc-number">6.</span> <span class="toc-text">有序集合(zset)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#时间负责度"><span class="toc-number">7.</span> <span class="toc-text">时间负责度</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通用命令"><span class="toc-number">1.</span> <span class="toc-text">通用命令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#字符串-string"><span class="toc-number">2.</span> <span class="toc-text">字符串(string)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#哈希-hash"><span class="toc-number">3.</span> <span class="toc-text">哈希(hash)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#列表-list"><span class="toc-number">4.</span> <span class="toc-text">列表(list)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集合-set"><span class="toc-number">5.</span> <span class="toc-text">集合(set)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有序集合-zset"><span class="toc-number">6.</span> <span class="toc-text">有序集合(zset)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#其他功能"><span class="toc-number">7.</span> <span class="toc-text">其他功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#慢查询"><span class="toc-number">7.1.</span> <span class="toc-text">慢查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pipeline"><span class="toc-number">7.2.</span> <span class="toc-text">pipeline</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#发布订阅"><span class="toc-number">7.3.</span> <span class="toc-text">发布订阅</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#时间负责度"><span class="toc-number">8.</span> <span class="toc-text">时间负责度</span></a></li></ol>
         </div>
     
 </div>
