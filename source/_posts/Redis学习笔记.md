@@ -686,6 +686,76 @@ OK
 集合间操作
 
 
+## 其他功能
+
+### 慢查询
+
+1. 生命周期
+
+![](https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181128095642.png)
+
+> 两点说明：   
+> (1) 慢查询发生在第3阶段   
+> (2) 客户端超时不一定是慢查询，但慢查询是客户端超时的一个可能因素
+
+2. 两个配置
+
+(1) slowlog-max-len 固定长度   
+(2) slowlog-log-slower-than 慢查询阙值(单位：微秒)
+
+慢查询是一个**先进先出的队列**，简单的说就是一条命令在第3步的执行过程中被列入慢查询的范围内，它就会进入一个队列。这个队列是用redis的列表来实现的，而且这个队列是一个**固定长度**的。并且它是**保存在内存中**的，随着redis的重启而消失。
+
+3. 配置方法
+
+(1) 默认值
+
+* slowlog-max-len = 128
+* slowlog-log-slower-than = 10000
+
+(2) 修改配置文件重启   
+    在第一次redis配置时修改，生产环境不建议重启。
+
+(3) 动态配置
+
+```sh
+127.0.0.1:6379> config set slowlog-max-len 1000
+OK
+127.0.0.1:6379> config set slowlog-log-slower-than 10000
+OK
+```
+
+4. 三个命令
+
+* slowlog get [n] 获取n条慢查询队列记录
+* slowlog len 获取慢查询队列长度
+* slowlog reset 清空慢查询队列
+
+5. 运维经验
+
+* slowlog-max-len 不要设置过小，通常设置1000左右
+* slowlog-log-slower-than 不要设置过大，默认10ms，通常设置1ms
+* 定期持久化慢查询
+
+
+### pipeline
+
+1. 什么是流水线
+
+批量处理命令，1次pipeline(n条命令) = 1次网络时间 + n次命令时间
+
+> redis命令的执行时间通常是微妙级别   
+> pipeline其实就是为了解决n次网络时间耗时的问题
+
+2. 使用建议
+
+* 注意每次pipeline携带的数据量
+* pipeline每次只能作用在一个Redis节点上
+* M操作与pipeline的区别，mGet、mSet这些都是原子操作，pipeline会拆分执行，是非原子操作
+
+
+### 发布订阅
+
+
 ## 时间负责度
 
 | 命令 | 时间复杂度 |
