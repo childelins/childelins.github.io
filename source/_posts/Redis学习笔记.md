@@ -755,6 +755,61 @@ OK
 
 ### 发布订阅
 
+1. 角色
+
+* 发布者(publisher)
+* 订阅者(subscriber)
+* 频道(channel)
+
+![](https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181129105007.png)
+
+2. 相关命令
+
+* publish [channel] [message] 发布
+* subscribe [channel] 订阅
+* unsubscribe [channel] 取消订阅
+
+```sh
+127.0.0.1:6379> publish sohu:tv "hello world"
+(integer) 0 # 订阅者个数
+127.0.0.1:6379> subscribe sohu:tv
+Reading messages... (press Ctrl-C to quit)
+1) "subscribe"
+2) "sohu:tv"
+3) (integer) 1
+127.0.0.1:6379> publish sohu:tv "cool"
+(integer) 1
+127.0.0.1:6379> subscribe sohu:tv
+Reading messages... (press Ctrl-C to quit)
+1) "subscribe"
+2) "sohu:tv"
+3) (integer) 1
+1) "message"
+2) "sohu:tv"
+3) "cool"
+127.0.0.1:6379> unsubscribe sohu:tv
+1) "unsubscribe"
+2) "sohu:tv"
+3) (integer) 0
+```
+
+3. 其他命令
+
+* psubscribe [pattern...] 订阅模式
+* punsubscribe [pattern...] 退订指定的模式
+* pubsub channels 列出至少有一个订阅者的频道
+* pubsub numsub [channel...] 列出给定频道的订阅者数量
+* pubsub numpat 列出被订阅模式的数量
+
+4. 消息队列模型
+
+![](https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181129111720.png)
+
+消息队列与发布订阅的区别：
+
+* 发布订阅是发布消息后所有订阅者都可以收到
+* 消息队列是发布消息后只有一个订阅者可以收到，需要自己实现(如基于列表的阻塞)
+
 
 ## 时间负责度
 
