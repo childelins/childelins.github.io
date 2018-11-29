@@ -398,7 +398,44 @@
 <li>pipeline每次只能作用在一个Redis节点上</li>
 <li>M操作与pipeline的区别，mGet、mSet这些都是原子操作，pipeline会拆分执行，是非原子操作</li>
 </ul>
-<h3 id="发布订阅"><a href="#发布订阅" class="headerlink" title="发布订阅"></a>发布订阅</h3><h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
+<h3 id="发布订阅"><a href="#发布订阅" class="headerlink" title="发布订阅"></a>发布订阅</h3><ol>
+<li>角色</li>
+</ol>
+<ul>
+<li>发布者(publisher)</li>
+<li>订阅者(subscriber)</li>
+<li>频道(channel)</li>
+</ul>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181129105007.png" alt=""></p>
+<ol start="2">
+<li>相关命令</li>
+</ol>
+<ul>
+<li>publish [channel] [message] 发布</li>
+<li>subscribe [channel] 订阅</li>
+<li>unsubscribe [channel] 取消订阅</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; publish sohu:tv <span class="string">"hello world"</span></span><br><span class="line">(<span class="built_in">integer</span>) 0 <span class="comment"># 订阅者个数</span></span><br><span class="line">127.0.0.1:6379&gt; subscribe sohu:tv</span><br><span class="line">Reading messages... (press Ctrl-C to quit)</span><br><span class="line">1) <span class="string">"subscribe"</span></span><br><span class="line">2) <span class="string">"sohu:tv"</span></span><br><span class="line">3) (<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; publish sohu:tv <span class="string">"cool"</span></span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; subscribe sohu:tv</span><br><span class="line">Reading messages... (press Ctrl-C to quit)</span><br><span class="line">1) <span class="string">"subscribe"</span></span><br><span class="line">2) <span class="string">"sohu:tv"</span></span><br><span class="line">3) (<span class="built_in">integer</span>) 1</span><br><span class="line">1) <span class="string">"message"</span></span><br><span class="line">2) <span class="string">"sohu:tv"</span></span><br><span class="line">3) <span class="string">"cool"</span></span><br><span class="line">127.0.0.1:6379&gt; unsubscribe sohu:tv</span><br><span class="line">1) <span class="string">"unsubscribe"</span></span><br><span class="line">2) <span class="string">"sohu:tv"</span></span><br><span class="line">3) (<span class="built_in">integer</span>) 0</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>其他命令</li>
+</ol>
+<ul>
+<li>psubscribe [pattern…] 订阅模式</li>
+<li>punsubscribe [pattern…] 退订指定的模式</li>
+<li>pubsub channels 列出至少有一个订阅者的频道</li>
+<li>pubsub numsub [channel…] 列出给定频道的订阅者数量</li>
+<li>pubsub numpat 列出被订阅模式的数量</li>
+</ul>
+<ol start="4">
+<li>消息队列模型</li>
+</ol>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181129111720.png" alt=""></p>
+<p>消息队列与发布订阅的区别：</p>
+<ul>
+<li>发布订阅是发布消息后所有订阅者都可以收到</li>
+<li>消息队列是发布消息后只有一个订阅者可以收到，需要自己实现(如基于列表的阻塞)</li>
+</ul>
+<h2 id="时间负责度"><a href="#时间负责度" class="headerlink" title="时间负责度"></a>时间负责度</h2><table>
 <thead>
 <tr>
 <th>命令</th>
