@@ -1,7 +1,8 @@
 ---
-title: Redis学习笔记
+title: Redis学习笔记（上）
 date: 2018-11-06 14:53:06
 tags:
+cover: https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/14411799-ilustraci%C3%B3n-de-los-ni%C3%B1os-jugando-al-f%C3%BAtbol-sobre-un-fondo-blanco.jpg
 ---
 
 Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，flushall等）
@@ -875,5 +876,3 @@ Reading messages... (press Ctrl-C to quit)
 | zrangebyscore | O(log(n)+m) |
 | zcount | O(log(n)+m) |
 | zremrangebyrank | O(log(n)+m) |
-
-

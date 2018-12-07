@@ -11,12 +11,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     
-    <meta name="description" content="Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，flushall等）
-单线程快的原因：
+    <meta name="description" content="持久化什么是持久化Redis的所有数据都保存在内存中，持久化会对数据的更新将异步地保存到磁盘上。
+持久化方式
+快照 (RDB)
+写日志 (AOF)
 
-纯内存(√)
-非阻塞IO
-避免线程切换和竞态消,"> 
+RDB
+
+什么是RDB
+
+
+
+
+
+RDB的三种触,"> 
     <meta name="author" content="chidelins"> 
     <link rel="alternative" href="atom.xml" title="childelins&#39;s blog" type="application/atom+xml"> 
     
@@ -72,15 +80,32 @@
     </div>
     
     <div id="post0">
-        <p>十一月 06, 2018</p>
-        <h2><a href="/2018/11/06/Redis学习笔记/" title="Redis学习笔记" class="posttitle">Redis学习笔记</a></h2>
-        <p class="summary">Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，fl...</p>
+        <p>十二月 06, 2018</p>
+        <h2><a href="/2018/12/06/Redis学习笔记（下）/" title="Redis学习笔记（下）" class="posttitle">Redis学习笔记（下）</a></h2>
+        <p class="summary">持久化什么是持久化Redis的所有数据都保存在内存中，持久化会对数据的更新将异步地保存到磁盘上。
+持久化方式
+快照...</p>
     </div>
     
 </div>
 
     <div id="primary">
         
+<div class="post">
+    <a href="/2018/11/06/Redis学习笔记（上）/" title="Redis学习笔记（上）">
+        <img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/14411799-ilustraci%C3%B3n-de-los-ni%C3%B1os-jugando-al-f%C3%BAtbol-sobre-un-fondo-blanco.jpg" class="cover" width="680" height="440">
+    </a>
+    <div class="else">
+        <p>十一月 06, 2018</p>
+        <h3><a href="/2018/11/06/Redis学习笔记（上）/" title="Redis学习笔记（上）" class="posttitle">Redis学习笔记（上）</a></h3>
+        <p>Redis是单线程架构，一次只运行一条命令，不会同时运行两条命令。注意不要在生产环境上执行慢命令（如keys，flushall等）
+单线程快的原因：
+
+纯...</p>
+    </div>
+</div>
+
+
 <div class="post">
     <a href="/2018/11/04/Swoole-从入门到放弃/" title="Swoole 从入门到放弃">
         <img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/depositphotos_12385452-stock-illustration-kids-playing.jpg" class="cover" width="680" height="440">
