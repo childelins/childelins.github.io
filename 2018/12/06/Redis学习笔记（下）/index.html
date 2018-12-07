@@ -39,7 +39,7 @@ RDB的三种触,">
     <div class="bar" style="width: 0;"></div>
     <a class="icon-home image-icon" href="javascript:;"></a>
     <div title="播放/暂停" class="icon-play"></div>
-    <h3 class="subtitle">whoami</h3>
+    <h3 class="subtitle">Redis学习笔记（下）</h3>
     <div class="social">
         <!--<div class="like-icon">-->
             <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -56,17 +56,71 @@ RDB的三种触,">
     <div class="section">
         <div class="article">
     <div class='main'>
-        <h1 class="title">whoami</h1>
+        <h1 class="title">Redis学习笔记（下）</h1>
         <div class="stuff">
-            <span>九月 27, 2018</span>
+            <span>十二月 06, 2018</span>
             
 
         </div>
         <div class="content markdown">
-            <blockquote>
-<p>春江花月夜</p>
+            <h2 id="持久化"><a href="#持久化" class="headerlink" title="持久化"></a>持久化</h2><h3 id="什么是持久化"><a href="#什么是持久化" class="headerlink" title="什么是持久化"></a>什么是持久化</h3><p>Redis的所有数据都保存在内存中，持久化会对数据的更新将异步地保存到磁盘上。</p>
+<h3 id="持久化方式"><a href="#持久化方式" class="headerlink" title="持久化方式"></a>持久化方式</h3><ul>
+<li>快照 (RDB)</li>
+<li>写日志 (AOF)</li>
+</ul>
+<h4 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h4><blockquote>
+<ol>
+<li>什么是RDB</li>
+</ol>
 </blockquote>
-<p>春江潮水连海平，海上明月共潮生。<br>滟滟随波千万里，何处春江无月明！<br>江流宛转绕芳甸，月照花林皆似霰。<br>空里流霜不觉飞，汀上白沙看不见。<br>江天一色无纤尘，皎皎空中孤月轮。<br>江畔何人初见月？江月何年初照人？<br>人生代代无穷已，江月年年只相似。<br>不知江月待何人，但见长江送流水。<br>白云一片去悠悠，青枫浦上不胜愁。<br>谁家今夜扁舟子？何处相思明月楼？<br>可怜楼上月徘徊，应照离人妆镜台。<br>玉户帘中卷不去，捣衣砧上拂还来。<br>此时相望不相闻，愿逐月华流照君。<br>鸿雁长飞光不度，鱼龙潜跃水成文。<br>昨夜闲潭梦落花，可怜春半不还家。<br>江水流春去欲尽，江潭落月复西斜。<br>斜月沉沉藏海雾，碣石潇湘无限路。<br>不知乘月几人归，落月摇情满江树。   </p>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181130145409.png" alt=""></p>
+<blockquote>
+<ol start="2">
+<li>RDB的三种触发方式</li>
+</ol>
+</blockquote>
+<ul>
+<li>save(同步)</li>
+<li>bgsave(异步)</li>
+<li>自动生成</li>
+</ul>
+<hr>
+<p>save 命令</p>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181205151001.png" alt=""></p>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181205151717.png" alt=""></p>
+<p>因为 save 命令是同步执行的，所以在数据量比较大时会造成Redis的阻塞。</p>
+<hr>
+<p>bgsave 命令</p>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181205152555.png" alt=""></p>
+<p>文件策略和复杂度与save命令相同。</p>
+<hr>
+<p>自动生成RDB</p>
+<p><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20181206094201.png" alt=""></p>
+<p>通过配置来自动生成RDB。如果在xx秒内，改变了x条数据，就自动生成RDB文件。</p>
+<p>最佳配置<br><img src="https://knowledge-payment.oss-cn-beijing.aliyuncs.com/others/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20181206102912.png" alt=""></p>
+<blockquote>
+<ol start="3">
+<li>其他触发RDB方式</li>
+</ol>
+</blockquote>
+<ul>
+<li>全量复制 (主从复制时，主会自动生成RDB文件)</li>
+<li>debug reload</li>
+<li>shutdown (参数save)</li>
+</ul>
+<hr>
+<blockquote>
+<ol start="4">
+<li>RDB 总结</li>
+</ol>
+</blockquote>
+<ul>
+<li>RDB是Redis内存到硬盘的快照，用户持久化。</li>
+<li>save通常会阻塞Redis。</li>
+<li>bgsave不会阻塞Redis，但是会fork新进程。</li>
+<li>save自动配置只要满足任一条件就会被执行，但不建议使用。</li>
+<li>有些触发机制不容忽视。</li>
+</ul>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
@@ -97,7 +151,7 @@ RDB的三种触,">
     </div>
     
         <div class='side'>
-            
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#持久化"><span class="toc-number">1.</span> <span class="toc-text">持久化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是持久化"><span class="toc-number">1.1.</span> <span class="toc-text">什么是持久化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#持久化方式"><span class="toc-number">1.2.</span> <span class="toc-text">持久化方式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RDB"><span class="toc-number">1.2.1.</span> <span class="toc-text">RDB</span></a></li></ol></li></ol></li></ol>
         </div>
     
 </div>
